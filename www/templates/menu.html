@@ -13,10 +13,35 @@
     </ion-header-bar>
     <ion-content>
       <ion-list>
-        <ion-item nav-clear menu-close ng-click="login()">
-          Login
+        <ion-item ng-repeat="furniture in furnitures" ng-value="furniture.name" ng-click="checkRadio(furniture.name)">{{furniture.name}}</ion-item>
+        <ion-item ng-click='openModal();'>
+          Add item
         </ion-item>
       </ion-list>
     </ion-content>
   </ion-side-menu>
 </ion-side-menus>
+
+<script id="my-modal.html" type="text/ng-template">
+  <ion-modal-view>
+    <ion-header-bar>
+      <h1 class="title">Login</h1>
+      <div class="buttons">
+        <button class="button button-clear" ng-click="closeModal()">Close</button>
+      </div>
+    </ion-header-bar>
+    <ion-content>
+      <form ng-submit="addItem()">
+        <div class="list">
+          <label class="item item-input">
+            <span class="input-label">Furniture Name</span>
+            <input type="text" ng-model="furn.name">
+          </label>
+          <label class="item">
+            <button class="button button-block button-positive" type="submit">Create!</button>
+          </label>
+        </div>
+      </form>
+    </ion-content>
+  </ion-modal-view>
+</script>
