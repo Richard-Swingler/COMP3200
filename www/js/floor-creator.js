@@ -2,7 +2,7 @@ angular.module('floor-creator.controllers', [])
 
 .controller('FloorCtrl', function($scope) {
   var editor = new Phaser.Game(1024, 705, Phaser.AUTO, 'canvas', { preload: preload, create: create, update:update, render:render}, false);
-  var logo, create_button, floor, bmd, shadow, grid, windows, plug, carouselBg, recX, recY, orX, orY, save_button, carousel, door, doorShadow; //initialise global variables [TODO] Replace by this. when eventually using states
+  var logo, create_button, floor,noDropBmd, bmd, shadow, grid, windows, plug, carouselBg, recX, recY, orX, orY, save_button, carousel, door, doorShadow; //initialise global variables [TODO] Replace by this. when eventually using states
   function preload(){
     editor.load.image('logo', 'img/ionic.png');
     editor.load.image('grid', 'img/grid.png');
@@ -82,11 +82,20 @@ angular.module('floor-creator.controllers', [])
         window.localStorage.setItem("floor", JSON.stringify({orX: orX, orY: orY, recX: recX, recY: recY}));
         floor.x = 100;
         floor.y = 50;
-        editor.world.sendToBack(floor);
-        editor.world.sendToBack(grid);
-
+        
+        floor.inputEnabled = false;
         save_button.visible = false;
         carousel.visible = true;
+        noDropBmd = editor.add.bitmapData(floor.width, floor.height);
+        // setup bitmap colour
+        noDropBmd.ctx.beginPath();
+        noDropBmd.ctx.rect(0,0,floor.width - 100, floor.height - 100);
+        noDropBmd.ctx.fillStyle = '#ffffff';
+        noDropBmd.ctx.fill(); 
+        noDrop = editor.add.sprite(floor.x +50, floor.y +50, noDropBmd);
+        editor.world.sendToBack(noDrop);
+        editor.world.sendToBack(floor);
+        editor.world.sendToBack(grid);
         //window.open("#/app/furniture");
       }, this, 2, 1, 0);
     }
@@ -132,14 +141,15 @@ angular.module('floor-creator.controllers', [])
     carousel.visible = false;
   }
   function dragDoor(sprite, pointer){
+    noDrop.visible = true;
     console.log(sprite.x);
+    floor.tint = 0x00ff00;
     door.loadTexture('grid', 0, false);
     door.height = 100;
     door.width = 100;
   }
   function dropDoor(sprite, pointer){
-    
-    
+    floor.tint = 0xffffff;
     if(onWall(floor, door)){
       console.log('yay');
       //group items
@@ -153,10 +163,18 @@ angular.module('floor-creator.controllers', [])
     }
   }
   function onWall(floor, feature){
-    if (feature.x >= floor.x && feature.x <= floor.width && feature.y === floor.y){
-      console.log('touching top');
-      return true;
-    }
-    return false;
+    return checkNorth(floor, feature) || checkSouth(floor, feature) || checkWest(floor, feature) || checkEast(floor, feature);
+  }
+  function checkNorth(floor, feature){
+    return feature.x >= floor.x && feature.x <= floor.width && feature.y === floor.y;
+  }
+  function checkSouth(floor, feature){
+    return feature.x >= floor.x && feature.x <= floor.width && feature.y === floor.height - 50;
+  }
+  function checkWest(floor, feature){
+    return feature.y >= floor.y && feature.y <= floor.height && feature.x === floor.x;
+  }
+  function checkEast(floor, feature){
+    return feature.y >= floor.y && feature.y <= floor.height && feature.x === floor.width;
   }
 })

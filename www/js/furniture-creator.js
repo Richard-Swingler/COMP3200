@@ -56,7 +56,7 @@ angular.module('furniture-creator.controllers', [])
         furnEditor.stage.backgroundColor = '#ffffff'; 
         furnEditor.add.tileSprite(0, 0, 1024, 705, "grid");  
 
-        create_button = furnEditor.add.button(furnEditor.world.width - 200, furnEditor.world.height -100, 'create_button', createButton, this, 2, 1, 0);
+        create_button = furnEditor.add.button(furnEditor.wolrd.width - 200, furnEditor.world.height -100, 'create_button', createButton, this, 2, 1, 0);
         create_button.on = false;
         function createButton(){
           create_button.on = !create_button.on; 
