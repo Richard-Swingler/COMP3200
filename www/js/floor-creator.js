@@ -1,8 +1,39 @@
 angular.module('floor-creator.controllers', [])
 
-.controller('FloorCtrl', function($scope) {
+.controller('FloorCtrl', function($scope, $ionicModal, $ionicScrollDelegate, $ionicPopup) {
+
+  // Triggered on a button click, or some other target
+  $scope.showPopup = function() {
+    $scope.data = {} //creates scope variable for form submition
+
+    // Custom pop up to prompt user for length of window
+    var myPopup = $ionicPopup.show({
+      template: '<input type="number" placeholder="Metres" ng-model="data.window">', 
+      title: 'Enter Window width',
+      subTitle: '1 Square = 1/2m',
+      scope: $scope,
+      buttons: [
+        { text: 'Cancel' },
+        {
+          text: '<b>Save</b>',
+          type: 'button-positive',
+          onTap: function(e) {
+            if (!$scope.data.window) {
+              //don't allow the user to close unless window width is entered
+              e.preventDefault();
+            } else {
+              addWindow(); //create the window in the default location
+            }
+          }
+        }
+      ]
+    });
+    myPopup.then(function(res) {
+      console.log('Tapped!', res);
+    });
+  };
   var editor = new Phaser.Game(1024, 705, Phaser.AUTO, 'canvas', { preload: preload, create: create, update:update, render:render}, false);
-  var logo, create_button, floor,noDropBmd, bmd, shadow, grid, windows, plug, carouselBg, recX, recY, orX, orY, save_button, carousel, door, doorShadow; //initialise global variables [TODO] Replace by this. when eventually using states
+  var logo, floorPlan, glass, create_button, floor, noDropBmd, bmd, shadow, grid, windows, plug, carouselBg, recX, recY, orX, orY, save_button, carousel, door, doorShadow; //initialise global variables [TODO] Replace by this. when eventually using states
   function preload(){
     editor.load.image('logo', 'img/ionic.png');
     editor.load.image('grid', 'img/grid.png');
@@ -39,6 +70,8 @@ angular.module('floor-creator.controllers', [])
     logo.input.enableDrag();
   }
   function update(){
+    rotateFeature(plug);
+    rotateFeature(glass);
     if(editor.input.activePointer.isDown && create_button.on){
       if(editor.input.activePointer.justPressed(50)){
         orX = editor.input.activePointer.x;
@@ -78,13 +111,14 @@ angular.module('floor-creator.controllers', [])
       create_button.on = false; 
       create_button.kill();
 
-      save_button = editor.add.button(editor.world.width - 200, editor.world.height -100, 'save_button', function(){
-        window.localStorage.setItem("floor", JSON.stringify({orX: orX, orY: orY, recX: recX, recY: recY}));
+      next_button = editor.add.button(editor.world.width - 200, editor.world.height -100, 'save_button', function(){
+        //window.localStorage.setItem("floor", JSON.stringify({orX: orX, orY: orY, recX: recX, recY: recY}));
+        floorPlan = editor.add.group();
+        floorPlan.add(floor);
         floor.x = 100;
         floor.y = 50;
-        
         floor.inputEnabled = false;
-        save_button.visible = false;
+        next_button.visible = false;
         carousel.visible = true;
         noDropBmd = editor.add.bitmapData(floor.width, floor.height);
         // setup bitmap colour
@@ -96,6 +130,9 @@ angular.module('floor-creator.controllers', [])
         editor.world.sendToBack(noDrop);
         editor.world.sendToBack(floor);
         editor.world.sendToBack(grid);
+        save_button = editor.add.button(editor.world.width - 200, editor.world.height -100, 'save_button', function(){
+          console.log('saved!!');
+        }, this, 2, 1, 0);
         //window.open("#/app/furniture");
       }, this, 2, 1, 0);
     }
@@ -114,7 +151,6 @@ angular.module('floor-creator.controllers', [])
     carouselBmd = editor.add.bitmapData(editor.width, 150);
     // setup bitmap colour
     carouselBmd.ctx.beginPath();
-    console.log(editor.width);
     carouselBmd.ctx.rect(0,0, editor.width, 150);
     carouselBmd.ctx.fillStyle = '#ffffff';
     carouselBmd.ctx.fill(); 
@@ -128,16 +164,29 @@ angular.module('floor-creator.controllers', [])
     door.width = 150;
     door.inputEnabled = true;
     door.input.enableDrag();
-    door.input.enableDrag();
     door.input.enableSnap(50, 50, true, true);
     door.events.onInputDown.add(dragDoor, this);
     door.events.onDragStop.add(dropDoor, this);
-    windows = carousel.create(425, editor.height - 150, 'window');
+    windows = editor.add.button(425, editor.height - 150, 'window', function(){
+      if(windows.alpha !== 0.2){
+        $scope.showPopup();
+      }
+      }, this, 2, 1, 0);
+    carousel.add(windows);
     windows.height = 150;
-    windows.width = 150;
+    windows.width = 150;    
+    plugShadow = carousel.create(600, editor.height - 150, 'plug');
+    plugShadow.height = 150;
+    plugShadow.width = 150;
+    plugShadow.alpha = 0.2;
     plug = carousel.create(600, editor.height - 150, 'plug');
     plug.height = 150;
     plug.width = 150;
+    plug.inputEnabled = true;
+    plug.input.enableDrag();
+    plug.input.enableSnap(50, 50, true, true);
+    plug.events.onInputDown.add(dragPlug, this);
+    plug.events.onDragStop.add(dropPlug, this);
     carousel.visible = false;
   }
   function dragDoor(sprite, pointer){
@@ -148,33 +197,101 @@ angular.module('floor-creator.controllers', [])
     door.height = 100;
     door.width = 100;
   }
+  function dragPlug(sprite, pointer){
+    noDrop.visible = true;
+    floor.tint = 0x00ff00;
+    plug.loadTexture('grid', 0, false);
+    plug.height = 50;
+    plug.width = 200;
+  }
+  function dragGlass(sprite, pointer){
+    noDrop.visible = true;
+    floor.tint = 0x00ff00;
+  }
   function dropDoor(sprite, pointer){
     floor.tint = 0xffffff;
     if(onWall(floor, door)){
-      console.log('yay');
       //group items
+      floorPlan.add(door);
+      door.inputEnabled = false;
     } else{
       door.x = doorShadow.x;
       door.y = doorShadow.y;
-      console.log('noooo');
       door.loadTexture('door', 0, false);
       door.height = 150;
       door.width = 150;
     }
   }
+  function dropPlug(sprite, pointer){
+    floor.tint = 0xffffff;
+    if(onWall(floor, plug)){
+      //group items
+      floorPlan.add(plug);
+      plug.inputEnabled = false;
+    } else{
+      plug.x = plugShadow.x;
+      plug.y = plugShadow.y;
+      plug.loadTexture('plug', 0, false);
+      plug.height = 150;
+      plug.width = 150;
+    }
+  }
+  function dropGlass(sprite, pointer){
+    floor.tint = 0xffffff;
+    if(onWall(floor, glass)){
+      //group items
+      floorPlan.add(glass);
+      glass.inputEnabled = false;
+    } else{
+      glass.x = floor.x;
+      glass.y = floor.y;
+    }
+  }
+  addWindow = function(){
+    //the window will in fact be more of a window arearea, where furniture with certain flags cannot be placed
+    var bmd = editor.add.bitmapData(50 , round($scope.data.window * 100)); //converts metres into px according to grid and rounds to nearest 50 px block
+    bmd.ctx.beginPath();
+    bmd.ctx.rect(0 , 0, 50 , round($scope.data.window * 100)); //converts metres into px according to grid and rounds to nearest 50 px block
+    bmd.ctx.fillStyle = '#00EEEE';
+    bmd.ctx.fill(); 
+    glass = editor.add.sprite(floor.x, floor.y, bmd);  
+    glass.bringToTop();
+    glass.inputEnabled = true;
+    glass.input.enableDrag();
+    glass.input.enableSnap(50, 50, true, true);
+    glass.events.onInputDown.add(dragGlass, this);
+    glass.events.onDragStop.add(dropGlass, this);
+    windows.tint = 0xD3D3D3;
+    windows.alpha = 0.2;
+  }
   function onWall(floor, feature){
-    return checkNorth(floor, feature) || checkSouth(floor, feature) || checkWest(floor, feature) || checkEast(floor, feature);
+    console.log(checkOverlap(feature, floor));
+    return checkOverlap(feature, floor) && checkOverlap(feature, noDrop) && checkNorth(floor, feature) || checkSouth(floor, feature) || checkWest(floor, feature) || checkEast(floor, feature);
   }
   function checkNorth(floor, feature){
-    return feature.x >= floor.x && feature.x <= floor.width && feature.y === floor.y;
+    return checkOverlap(feature, floor) && feature.x >= floor.x && feature.x <= floor.width && feature.y === floor.y;
   }
   function checkSouth(floor, feature){
-    return feature.x >= floor.x && feature.x <= floor.width && feature.y === floor.height - 50;
+    return checkOverlap(feature, floor) && feature.x >= floor.x && feature.x <= floor.width && feature.y === floor.height || feature.y === floor.height - 50;
   }
   function checkWest(floor, feature){
-    return feature.y >= floor.y && feature.y <= floor.height && feature.x === floor.x;
+    return checkOverlap(feature, floor) && feature.y >= floor.y && feature.y <= floor.height && feature.x === floor.x;
   }
   function checkEast(floor, feature){
-    return feature.y >= floor.y && feature.y <= floor.height && feature.x === floor.width;
+    return checkOverlap(feature, floor) && feature.y >= floor.y && feature.y <= floor.height && feature.x === floor.width || feature.x === floor.width + 50;
+  }
+  function checkOverlap(spriteA, spriteB) {
+    var boundsA = spriteA.getBounds();
+    var boundsB = spriteB.getBounds();
+    return Phaser.Rectangle.containsRect(boundsA, boundsB);
+  }
+  function rotateFeature(feature){
+    if(floor != null && feature != null ){
+      if(feature.width < feature.height && (checkNorth(floor, feature) || checkSouth(floor, feature))){
+        temp = feature.width, feature.width = feature.height, feature.height = temp;
+      }else if(feature.height < feature.width && (checkWest(floor, feature) || checkEast(floor, feature))){
+        temp = feature.height, feature.height = feature.width, feature.width = temp;
+      }
+    }
   }
 })

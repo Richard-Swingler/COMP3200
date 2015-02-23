@@ -128,6 +128,7 @@ angular.module('furniture-creator.controllers', [])
     function round(x){
       return Math.round(x /50)*50;
     }
+    
   }; 
 })
 
