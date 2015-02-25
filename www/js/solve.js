@@ -1,6 +1,7 @@
 angular.module('solve.controllers', [])
 
 .controller('SolveCtrl', function($scope) {
+  
   var solveEditor = new Phaser.Game(1024, 705, Phaser.AUTO, 'solveCanvas', { preload: preload, create: create, update:update, render:render}, false);
   var floor, furnitures, logo, sprites; //initialise global variables [TODO] Replace by this. when eventually using states
   function preload(){
@@ -17,7 +18,6 @@ angular.module('solve.controllers', [])
     solveEditor.add.tileSprite(0, 0, 1024, 705, "grid"); 
 
     floor = JSON.parse(window.localStorage.getItem("floor"));
-    console.log(floor);
     var floorBmd = createBmd(floor);
     floorBmd.ctx.fillStyle = '#ffffff';
     floorBmd.ctx.fill();
@@ -28,7 +28,7 @@ angular.module('solve.controllers', [])
     // var furn1Bmd = createBmd(furn1);
     furnitures = JSON.parse(window.localStorage.getItem('furniture'));
     sprites = solveEditor.add.group();
-    console.log('hi');
+    console.log(furnitures = JSON.parse(window.localStorage.getItem('features')););
     for(var furniture in furnitures){
         var furnBmd = createBmd(furnitures[furniture]);
         furnBmd.ctx.fillStyle = '#0080ff';
@@ -81,4 +81,3 @@ angular.module('solve.controllers', [])
     return Phaser.Rectangle.containsRect(boundsA, boundsB);
   }
 })
-

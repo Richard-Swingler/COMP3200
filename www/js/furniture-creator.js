@@ -4,6 +4,7 @@ angular.module('furniture-creator.controllers', [])
   $scope.furnitures = {};
   $scope.furn = {};
   $scope.choice = null;
+
   $scope.checkRadio = function(selected){
     //console.log();
     console.log(selected);
@@ -54,9 +55,8 @@ angular.module('furniture-creator.controllers', [])
         this.scale.pageAlignHorizontally = true;
         this.scale.pageAlignVertically = true;
         furnEditor.stage.backgroundColor = '#ffffff'; 
-        furnEditor.add.tileSprite(0, 0, 1024, 705, "grid");  
-
-        create_button = furnEditor.add.button(furnEditor.wolrd.width - 200, furnEditor.world.height -100, 'create_button', createButton, this, 2, 1, 0);
+        furnEditor.add.tileSprite(0, 0, 1024, 705, "grid"); 
+        create_button = furnEditor.add.button(furnEditor.world.width - 200, furnEditor.world.height -100, 'create_button', createButton, this, 2, 1, 0);
         create_button.on = false;
         function createButton(){
           create_button.on = !create_button.on; 
@@ -112,7 +112,6 @@ angular.module('furniture-creator.controllers', [])
         save_button = furnEditor.add.button(furnEditor.world.width - 200, furnEditor.world.height -100, 'save_button', function(){
           save_button.visible = false;
           if (!save_button.visible){
-            console.log($scope.furnitures);
             window.localStorage.setItem('furniture', JSON.stringify($scope.furnitures));
             furnEditor.destroy();
           }
@@ -130,5 +129,5 @@ angular.module('furniture-creator.controllers', [])
     }
     
   }; 
-})
+});
 

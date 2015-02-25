@@ -4,7 +4,7 @@ angular.module('floor-creator.controllers', [])
 
   // Triggered on a button click, or some other target
   $scope.showPopup = function() {
-    $scope.data = {} //creates scope variable for form submition
+    $scope.data = {}; //creates scope variable for form submition
 
     // Custom pop up to prompt user for length of window
     var myPopup = $ionicPopup.show({
@@ -112,9 +112,8 @@ angular.module('floor-creator.controllers', [])
       create_button.kill();
 
       next_button = editor.add.button(editor.world.width - 200, editor.world.height -100, 'save_button', function(){
-        //window.localStorage.setItem("floor", JSON.stringify({orX: orX, orY: orY, recX: recX, recY: recY}));
+        window.localStorage.setItem("floor", JSON.stringify({orX: orX, orY: orY, recX: recX, recY: recY}));
         floorPlan = editor.add.group();
-        floorPlan.add(floor);
         floor.x = 100;
         floor.y = 50;
         floor.inputEnabled = false;
@@ -131,9 +130,15 @@ angular.module('floor-creator.controllers', [])
         editor.world.sendToBack(floor);
         editor.world.sendToBack(grid);
         save_button = editor.add.button(editor.world.width - 200, editor.world.height -100, 'save_button', function(){
+          var features = {};
+          floorPlan.forEach(function(item) {
+              features[item.name] = {name: item.name, x: item.x, y: item.y, width: item.width, height: item.height};
+          }, this);
+          console.log(features);
+          window.localStorage.setItem('features', JSON.stringify(features));
           console.log('saved!!');
+          window.open("#/app/furniture");
         }, this, 2, 1, 0);
-        //window.open("#/app/furniture");
       }, this, 2, 1, 0);
     }
   }
@@ -212,6 +217,7 @@ angular.module('floor-creator.controllers', [])
     floor.tint = 0xffffff;
     if(onWall(floor, door)){
       //group items
+      door.name = 'door1';
       floorPlan.add(door);
       door.inputEnabled = false;
     } else{
@@ -226,6 +232,7 @@ angular.module('floor-creator.controllers', [])
     floor.tint = 0xffffff;
     if(onWall(floor, plug)){
       //group items
+      plug.name = 'plug1';
       floorPlan.add(plug);
       plug.inputEnabled = false;
     } else{
@@ -240,6 +247,7 @@ angular.module('floor-creator.controllers', [])
     floor.tint = 0xffffff;
     if(onWall(floor, glass)){
       //group items
+      glass.name = 'window1';
       floorPlan.add(glass);
       glass.inputEnabled = false;
     } else{
@@ -286,11 +294,12 @@ angular.module('floor-creator.controllers', [])
     return Phaser.Rectangle.containsRect(boundsA, boundsB);
   }
   function rotateFeature(feature){
+    //roatates rectangular when wall it hit to aling with it -- experimental
     if(floor != null && feature != null ){
       if(feature.width < feature.height && (checkNorth(floor, feature) || checkSouth(floor, feature))){
-        temp = feature.width, feature.width = feature.height, feature.height = temp;
+        temp = feature.width, feature.width = feature.height, feature.height = temp; //swap width with height 
       }else if(feature.height < feature.width && (checkWest(floor, feature) || checkEast(floor, feature))){
-        temp = feature.height, feature.height = feature.width, feature.width = temp;
+        temp = feature.height, feature.height = feature.width, feature.width = temp; //swap width with height 
       }
     }
   }
