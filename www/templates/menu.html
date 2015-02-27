@@ -25,7 +25,7 @@
 <script id="my-modal.html" type="text/ng-template">
   <ion-modal-view>
     <ion-header-bar>
-      <h1 class="title">Login</h1>
+      <h1 class="title">New Furniture</h1>
       <div class="buttons">
         <button class="button button-clear" ng-click="closeModal()">Close</button>
       </div>
@@ -33,12 +33,24 @@
     <ion-content>
       <form ng-submit="addItem()">
         <div class="list">
+          <div class="item item-divider"> 
+            Furniture Info
+          </div>  
           <label class="item item-input">
             <span class="input-label">Furniture Name</span>
             <input type="text" ng-model="furn.name">
           </label>
+          <div class="item item-divider"> 
+            Furniture Type/Flag
+          </div>      
+          <label class="item item-radio">
+            <ion-radio ng-model="furn.type" ng-value="'Normal'">Normal</ion-radio>
+            <ion-radio ng-model="furn.type" ng-value="'Desk'">Desk</ion-radio>
+            <ion-radio ng-model="furn.type" ng-value="'Bed'">Bed</ion-radio>
+            <ion-radio ng-model="furn.type" ng-value="'Tall'">Tall</ion-radio>
+          </label>
           <label class="item">
-            <button class="button button-block button-positive" type="submit">Create!</button>
+            <button class="button button-block button-balanced" type="submit">Create!</button>
           </label>
         </div>
       </form>

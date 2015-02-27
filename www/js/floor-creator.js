@@ -1,7 +1,6 @@
 angular.module('floor-creator.controllers', [])
 
 .controller('FloorCtrl', function($scope, $ionicModal, $ionicScrollDelegate, $ionicPopup) {
-
   // Triggered on a button click, or some other target
   $scope.showPopup = function() {
     $scope.data = {}; //creates scope variable for form submition
@@ -132,7 +131,7 @@ angular.module('floor-creator.controllers', [])
         save_button = editor.add.button(editor.world.width - 200, editor.world.height -100, 'save_button', function(){
           var features = {};
           floorPlan.forEach(function(item) {
-              features[item.name] = {name: item.name, x: item.x, y: item.y, width: item.width, height: item.height};
+              features[item.name] = {name: item.name, x: item.x, y: item.y, width: item.width, height: item.height, type: item.type};
           }, this);
           console.log(features);
           window.localStorage.setItem('features', JSON.stringify(features));
@@ -218,6 +217,7 @@ angular.module('floor-creator.controllers', [])
     if(onWall(floor, door)){
       //group items
       door.name = 'door1';
+      door.type = 'door';
       floorPlan.add(door);
       door.inputEnabled = false;
     } else{
@@ -233,6 +233,7 @@ angular.module('floor-creator.controllers', [])
     if(onWall(floor, plug)){
       //group items
       plug.name = 'plug1';
+      plug.type = 'plug';
       floorPlan.add(plug);
       plug.inputEnabled = false;
     } else{
@@ -247,6 +248,7 @@ angular.module('floor-creator.controllers', [])
     floor.tint = 0xffffff;
     if(onWall(floor, glass)){
       //group items
+      glass.type = 'window';
       glass.name = 'window1';
       floorPlan.add(glass);
       glass.inputEnabled = false;

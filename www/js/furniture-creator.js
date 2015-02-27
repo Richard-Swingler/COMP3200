@@ -9,21 +9,16 @@ angular.module('furniture-creator.controllers', [])
     //console.log();
     console.log(selected);
   };
-  var count = 0;
   $scope.addItem = function(){
     $scope.new = true;
     $scope.createBlock($scope.furn['name']);
     $scope.closeModal();
-    $scope.furnitures[$scope.furn['name']] = {name: $scope.furn['name'], recX: '', recY: ''};
+    console.log($scope.furn['type']);
+    $scope.furnitures[$scope.furn['name']] = {name: $scope.furn['name'], recX: '', recY: '', type: $scope.furn['type']};
+    $scope.furn = {};
     $ionicScrollDelegate.scrollBottom();
-    count++;
   };
   $scope.solve = function(){
-    var hi = JSON.parse(window.localStorage.getItem('furniture'));
-        for(var key in hi){
-            console.log(hi[key]);
-            console.log(hi[key]['recX']);
-        }
     window.open("#/solve");
   };
   $ionicModal.fromTemplateUrl('my-modal.html', {
