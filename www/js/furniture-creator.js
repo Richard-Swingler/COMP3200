@@ -19,6 +19,8 @@ angular.module('furniture-creator.controllers', [])
     $ionicScrollDelegate.scrollBottom();
   };
   $scope.solve = function(){
+    featuresData = JSON.parse(window.localStorage.getItem('furniture'));
+    console.log(featuresData);
     window.open("#/solve");
   };
   $ionicModal.fromTemplateUrl('my-modal.html', {

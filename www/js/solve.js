@@ -3,7 +3,9 @@ angular.module('solve.controllers', [])
 .controller('SolveCtrl', function($scope) {
   
   var solveEditor = new Phaser.Game(1024, 705, Phaser.AUTO, 'solveCanvas', { preload: preload, create: create, update:update, render:render}, false);
-  var floor, furnitures, logo, sprites, features; //initialise global variables [TODO] Replace by this. when eventually using states
+  var floor, furnitures, logo, sprites, features, door, plug; //initialise global variables [TODO] Replace by this. when eventually using states
+  var side = 0;
+  var placeDesk = true;
   function preload(){
       solveEditor.load.image('logo', 'img/ionic.png');
       solveEditor.load.image('grid', 'img/grid.png');
@@ -37,10 +39,12 @@ angular.module('solve.controllers', [])
         featuresData[feature].obj = features.create(featuresData[feature].x -50 , featuresData[feature].y , texture);//-50 syncs to new position of floor (50,50) where as (100, 50) before 
         featuresData[feature].obj.width = featuresData[feature].width;
         featuresData[feature].obj.height = featuresData[feature].height;
+        door = featuresData[feature].obj;
       }
       else if(featuresData[feature].type === 'plug'){
         featuresData[feature].obj = solveEditor.add.tileSprite(featuresData[feature].x -50 , featuresData[feature].y ,featuresData[feature].width, featuresData[feature].height, 'plug');
         features.add(featuresData[feature].obj);
+        plug = featuresData[feature].obj;
       }
       else if(featuresData[feature].type === 'window'){
         featuresData[feature].obj = solveEditor.add.tileSprite(featuresData[feature].x -50 , featuresData[feature].y ,featuresData[feature].width, featuresData[feature].height, 'window');
@@ -58,24 +62,18 @@ angular.module('solve.controllers', [])
       centerText(featuresData[feature].label, featuresData[feature].obj); //does nto need to be done dynamically as features should nopt move.
       solveEditor.physics.enable(featuresData[feature].obj, Phaser.Physics.ARCADE);
       featuresData[feature].obj.body.collideWorldBounds = true;
-      featuresData[feature].obj.body.immovable = true;
-    
-}
+      featuresData[feature].obj.body.immovable = true; 
+    }
     //loads furniture onto floor 
     furnitures = JSON.parse(window.localStorage.getItem('furniture'));
-    console.log(furnitures);
     sprites = solveEditor.add.group();
     for(var furniture in furnitures){
-        console.log(furnitures[furniture]);
         var furnBmd = createBmd(furnitures[furniture]);
         furnBmd.ctx.fillStyle = '#0080ff'; //[TODO] load different texture based on type 
         furnBmd.shiftHSL(0.1);
         furnBmd.ctx.fill();
-        furnitures[furniture].obj = sprites.create(0, 0, furnBmd);
+        furnitures[furniture].obj = sprites.create(50, 50, furnBmd);
         solveEditor.physics.enable(furnitures[furniture].obj, Phaser.Physics.ARCADE);
-        furnitures[furniture].obj.body.velocity.setTo(200, 200);
-        furnitures[furniture].obj.body.bounce.set(0.8);
-        furnitures[furniture].obj.body.gravity.set(0, 180);
         furnitures[furniture].obj.inputEnabled = true;
         // console.log(furnitures[furniture].height);
         furnitures[furniture].obj.input.enableDrag();
@@ -85,26 +83,19 @@ angular.module('solve.controllers', [])
         //creates label
         furnitures[furniture].label = solveEditor.add.text(0, 0, furnitures[furniture].type , style);
         furnitures[furniture].label.anchor.set(0.5);
-        //  This sets the image bounce energy for the horizontal  and vertical vectors (as an x,y point). "1" is 100% energy return
-        furnitures[furniture].obj.body.bounce.set(0.8);
-        furnitures[furniture].obj.body.gravity.set(0, 180);
     }
-    sprites.setAll('body.collideWorldBounds', true);
-    sprites.setAll('body.bounce.x', 0.7);
-    sprites.setAll('body.bounce.y', 0.7);
-    sprites.setAll('body.minBounceVelocity', 0);
+    solveEditor.time.events.loop(Phaser.Timer.SECOND, function(){ side++; }, this); 
     logo = solveEditor.add.sprite(0,0,'logo');
     logo.inputEnabled = true;
     logo.input.enableDrag();
-
   }
   function update(){
-    solveEditor.physics.arcade.collide(sprites);
-    solveEditor.physics.arcade.collide(sprites,features);
+   
+    generateUserSolutions(furnitures, features);
     for(var furniture in furnitures){
       centerText(furnitures[furniture].label, furnitures[furniture].obj); //for each furniture takes its label and adjusts the position if neede;
       if(!checkOverlap(furnitures[furniture].obj, floor)){
-        solveEditor.physics.arcade.moveToXY(furnitures[furniture].obj, floor.width/2, floor.y, 250);  
+        //solveEditor.physics.arcade.moveToXY(furnitures[furniture].obj, floor.width/2, floor.y, 250);  
       }
     } 
   }
@@ -125,5 +116,118 @@ angular.module('solve.controllers', [])
   function centerText(text, sprite){
     text.x = Math.floor(sprite.x + sprite.width / 2);
     text.y = Math.floor(sprite.y + sprite.height / 2);
+  }
+  function generateUserSolutions(furnitures, features){
+    //set bed orientation
+    rotateBed(furnitures['Bed'].obj); //get each possible possition for a bed
+    if(checkDoorCollisions(door, furnitures['Bed'].obj)){ //checks if in way of door (first furniture to be place so no collision there)
+      floor.tint = 0xff0000;
+    }else{
+      floor.tint = 0xffffff;
+      while (placeDesk == true){
+        //place desk
+        setDesk(furnitures['Desk'].obj);
+        break;
+        //place rest of furnitures
+      }
+    }
+    //store in memory for next itteration
+  } 
+  function rotateBed(bed){ //rotates bed based on side variable (currently every 2 seconds)
+    switch(side) {
+      case 0:
+          if(!isFlat(bed)){
+            temp = bed.width, bed.width = bed.height, bed.height = temp; //swap width with height 
+          }
+          topLeft(bed);
+          break;
+      case 1:
+          if(isFlat(bed)){
+            temp = bed.width, bed.width = bed.height, bed.height = temp; //swap width with height 
+          }
+          topLeft(bed);
+          break;
+      case 2:
+          if(!isFlat(bed)){
+            temp = bed.width, bed.width = bed.height, bed.height = temp; //swap width with height 
+          }
+          topRight(bed);
+          break;
+      case 3:
+          if(isFlat(bed)){
+            temp = bed.width, bed.width = bed.height, bed.height = temp; //swap width with height 
+          }
+          topRight(bed);
+          break;
+      case 4:
+          if(!isFlat(bed)){
+            temp = bed.width, bed.width = bed.height, bed.height = temp; //swap width with height 
+          }
+          bottomLeft(bed);
+          break;
+      case 5:
+          if(isFlat(bed)){
+            temp = bed.width, bed.width = bed.height, bed.height = temp; //swap width with height 
+          }
+          bottomLeft(bed);
+          break;
+      case 6:
+          if(!isFlat(bed)){
+            temp = bed.width, bed.width = bed.height, bed.height = temp; //swap width with height 
+          }
+          bottomRight(bed);
+          break;
+      case 7:
+          if(isFlat(bed)){
+            temp = bed.width, bed.width = bed.height, bed.height = temp; //swap width with height 
+          }
+          bottomRight(bed);
+          break;
+      default:
+          console.log('nothing to do here');
+          side = 0;
+    } 
+  }
+  function setDesk(desk){
+    desk.x = plug.x;
+    desk.y = plug.y;
+    desk.alpha = 0.5;
+    if(isFlat(plug) !== isFlat(desk)){ //checks if items are the same orientation
+      temp = desk.width, desk.width = desk.height, desk.height = temp; //swap width with height 
+    }
+    if(floor.width === desk.x){ //if gets out of horizontal floor bounds
+      desk.x -= 50; //account for phaser 
+    } else if(floor.height === desk.y){
+      desk.y -= 50;
+    }
+  }
+  function solveForRemainingSpace(){
+    //check overlap with group.
+
+  }
+  function checkDoorCollisions(bed, door){
+    var boundsA = bed.getBounds();
+    var boundsB = door.getBounds();
+    return Phaser.Rectangle.containsRect(boundsA, boundsB);
+  }
+  function isFlat(object){
+    //returns true if width is larger than height
+    return object.width > object.height;
+  }
+  function topLeft(obj){
+    obj.x = floor.x;
+    obj.y = floor.y;
+  }
+  function topRight(obj){
+    obj.x = floor.width - obj.width +50; //+50 to account for phasewr anchor
+    obj.y = floor.y;
+  }
+  function bottomLeft(obj){
+    obj.x = floor.x;
+    obj.y = floor.height - obj.height + 50; //+50 to account for phaser anchor
+  }
+  function bottomRight(obj){
+    obj.x = floor.width - obj.width +50; //+50 to account for phasewr anchor
+    obj.y = floor.height - obj.height + 50; //+50 to account for phaser anchor
   }
 })
