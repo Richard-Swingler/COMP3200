@@ -120,18 +120,20 @@ angular.module('solve.controllers', [])
   function generateUserSolutions(furnitures, features){
     //set bed orientation
     rotateBed(furnitures['Bed'].obj); //get each possible possition for a bed
-    if(checkDoorCollisions(door, furnitures['Bed'].obj)){ //checks if in way of door (first furniture to be place so no collision there)
+    if(checkCollisions(door, furnitures['Bed'].obj)){ //checks if in way of door (first furniture to be place so no collision there)
       floor.tint = 0xff0000;
+      //end itteration
     }else{
       floor.tint = 0xffffff;
       while (placeDesk == true){
-        //place desk
+        //place desk in all possible positions if bed blocks all plugs, cancell itteration./
         setDesk(furnitures['Desk'].obj);
         break;
         //place rest of furnitures
+        //store in memory for next itteration
       }
     }
-    //store in memory for next itteration
+    
   } 
   function rotateBed(bed){ //rotates bed based on side variable (currently every 2 seconds)
     switch(side) {
@@ -192,20 +194,28 @@ angular.module('solve.controllers', [])
     desk.x = plug.x;
     desk.y = plug.y;
     desk.alpha = 0.5;
-    if(isFlat(plug) !== isFlat(desk)){ //checks if items are the same orientation
-      temp = desk.width, desk.width = desk.height, desk.height = temp; //swap width with height 
-    }
     if(floor.width === desk.x){ //if gets out of horizontal floor bounds
-      desk.x -= 50; //account for phaser 
-    } else if(floor.height === desk.y){
-      desk.y -= 50;
+      desk.x -= 50; //account for phaser anchor
+    } else if(floor.height === desk.y){ //or vertical bounds
+      desk.y -= 50; //account for phaser anchor
+    }
+    var collision = false;
+    solveEditor.physics.arcade.overlap(desk, furnitures['Bed'].obj, function(){ collision = true }, null, this);
+    if(collision || checkCollisions(door, desk)){ //checks if in way of door or bed (currently placed features)
+      floor.tint = 0xff0000;
+      //end itteration
+    }else{
+      floor.tint = 0xffffff;
+      if(isFlat(plug) !== isFlat(desk)){ //checks if items are the same orientation
+        temp = desk.width, desk.width = desk.height, desk.height = temp; //swap width with height 
+      }
     }
   }
   function solveForRemainingSpace(){
     //check overlap with group.
 
   }
-  function checkDoorCollisions(bed, door){
+  function checkCollisions(bed, door){
     var boundsA = bed.getBounds();
     var boundsB = door.getBounds();
     return Phaser.Rectangle.containsRect(boundsA, boundsB);
