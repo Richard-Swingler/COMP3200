@@ -3,7 +3,7 @@ angular.module('solve.controllers', [])
 .controller('SolveCtrl', function($scope) {
   
   var solveEditor = new Phaser.Game(1024, 705, Phaser.AUTO, 'solveCanvas', { preload: preload, create: create, update:update, render:render}, false);
-  var floor, furnitures, logo, sprites, features, door, plug; //initialise global variables [TODO] Replace by this. when eventually using states
+  var floor, furnitures, logo, sprites, features, door, plug, plugWall; //initialise global variables [TODO] Replace by this. when eventually using states
   var side = 0;
   var placeDesk = true;
   function preload(){
@@ -45,6 +45,9 @@ angular.module('solve.controllers', [])
         featuresData[feature].obj = solveEditor.add.tileSprite(featuresData[feature].x -50 , featuresData[feature].y ,featuresData[feature].width, featuresData[feature].height, 'plug');
         features.add(featuresData[feature].obj);
         plug = featuresData[feature].obj;
+        plugWall = 'unknown';
+        plugWall = checkWall(plug);
+        console.log(plugWall);
       }
       else if(featuresData[feature].type === 'window'){
         featuresData[feature].obj = solveEditor.add.tileSprite(featuresData[feature].x -50 , featuresData[feature].y ,featuresData[feature].width, featuresData[feature].height, 'window');
@@ -84,7 +87,7 @@ angular.module('solve.controllers', [])
         furnitures[furniture].label = solveEditor.add.text(0, 0, furnitures[furniture].type , style);
         furnitures[furniture].label.anchor.set(0.5);
     }
-    solveEditor.time.events.loop(Phaser.Timer.SECOND, function(){ side++; }, this); 
+    //solveEditor.time.events.loop(Phaser.Timer.SECOND, function(){ side++; }, this); 
     logo = solveEditor.add.sprite(0,0,'logo');
     logo.inputEnabled = true;
     logo.input.enableDrag();
@@ -193,11 +196,17 @@ angular.module('solve.controllers', [])
   function setDesk(desk){
     desk.x = plug.x;
     desk.y = plug.y;
-    desk.alpha = 0.5;
-    if(floor.width === desk.x){ //if gets out of horizontal floor bounds
-      desk.x -= 50; //account for phaser anchor
-    } else if(floor.height === desk.y){ //or vertical bounds
-      desk.y -= 50; //account for phaser anchor
+    desk.alpha = 0.5;  
+    if(isFlat(plug) !== isFlat(desk)){ //checks if items are the same orientation //sets default orientation
+      temp = desk.width, desk.width = desk.height, desk.height = temp; //swap width with height 
+    }
+    switch(plugWall){
+      case 'East': //for vertical arangements
+        if(plug.y === floor.x || plug.y - desk.width < floor.x){
+          temp = desk.width, desk.width = desk.height, desk.height = temp; //flip for first itteration
+          topRight(desk);
+        }
+      break; 
     }
     var collision = false;
     solveEditor.physics.arcade.overlap(desk, furnitures['Bed'].obj, function(){ collision = true }, null, this);
@@ -206,19 +215,47 @@ angular.module('solve.controllers', [])
       //end itteration
     }else{
       floor.tint = 0xffffff;
-      if(isFlat(plug) !== isFlat(desk)){ //checks if items are the same orientation
-        temp = desk.width, desk.width = desk.height, desk.height = temp; //swap width with height 
-      }
+
+    }
+    if(floor.width === desk.x){ //if gets out of horizontal floor bounds
+      desk.x -= 50; //account for phaser anchor
+    } else if(floor.height === desk.y){ //or vertical bounds
+      desk.y -= 50; //account for phaser anchor
     }
   }
   function solveForRemainingSpace(){
     //check overlap with group.
 
   }
+  function checkWall(plug){
+    if(checkNorth(floor, plug)){
+      return 'North';
+    }else if(checkEast(floor, plug)){
+      return 'East';
+    }else if(checkSouth(floor, plug)){
+      return 'South';
+    }else if(checkWest(floor, plug)){
+      return 'West';
+    }else{
+      return 'error plug not on wall';
+    }
+  }
   function checkCollisions(bed, door){
     var boundsA = bed.getBounds();
     var boundsB = door.getBounds();
     return Phaser.Rectangle.containsRect(boundsA, boundsB);
+  }
+  function checkNorth(floor, feature){
+    return checkOverlap(feature, floor) && feature.x >= floor.x && feature.x <= floor.width && feature.y === floor.y;
+  }
+  function checkSouth(floor, feature){
+    return checkOverlap(feature, floor) && feature.x >= floor.x && feature.x <= floor.width && feature.y === floor.height || feature.y === floor.height - 50;//+50 to account for phasewr anchor
+  }
+  function checkWest(floor, feature){
+    return checkOverlap(feature, floor) && feature.y >= floor.y && feature.y <= floor.height && feature.x === floor.x;
+  }
+  function checkEast(floor, feature){
+    return checkOverlap(feature, floor) && feature.y >= floor.y && feature.y <= floor.height && feature.x === floor.width || feature.x === floor.width + 50;//+50 to account for phasewr anchor
   }
   function isFlat(object){
     //returns true if width is larger than height
@@ -227,17 +264,21 @@ angular.module('solve.controllers', [])
   function topLeft(obj){
     obj.x = floor.x;
     obj.y = floor.y;
+    //side ++;
   }
   function topRight(obj){
     obj.x = floor.width - obj.width +50; //+50 to account for phasewr anchor
     obj.y = floor.y;
+    //side ++;
   }
   function bottomLeft(obj){
     obj.x = floor.x;
     obj.y = floor.height - obj.height + 50; //+50 to account for phaser anchor
+    //side ++;
   }
   function bottomRight(obj){
     obj.x = floor.width - obj.width +50; //+50 to account for phasewr anchor
     obj.y = floor.height - obj.height + 50; //+50 to account for phaser anchor
+    //side ++;
   }
 })
