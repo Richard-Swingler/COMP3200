@@ -4,7 +4,7 @@ angular.module('solve.controllers', [])
   
   var solveEditor = new Phaser.Game(1024, 705, Phaser.AUTO, 'solveCanvas', { preload: preload, create: create, update:update, render:render}, false);
   var floor, furnitures, logo, sprites, features, door, plug, plugWall; //initialise global variables [TODO] Replace by this. when eventually using states
-  var side = 0;
+  var side, deskPlaceCount = 0;
   var placeDesk = true;
   function preload(){
       solveEditor.load.image('logo', 'img/ionic.png');
@@ -131,7 +131,9 @@ angular.module('solve.controllers', [])
       while (placeDesk == true){
         //place desk in all possible positions if bed blocks all plugs, cancell itteration./
         setDesk(furnitures['Desk'].obj);
-        break;
+        if(deskPlaceCount === 10){
+          break;
+        }
         //place rest of furnitures
         //store in memory for next itteration
       }
