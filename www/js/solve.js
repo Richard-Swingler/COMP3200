@@ -4,7 +4,7 @@ angular.module('solve.controllers', [])
   
   var solveEditor = new Phaser.Game(1024, 705, Phaser.AUTO, 'solveCanvas', { preload: preload, create: create, update:update, render:render}, false);
   var floor, furnitures, logo, sprites, features, door, plug, plugWall; //initialise global variables [TODO] Replace by this. when eventually using states
-  var side, deskPlaceCount = 0;
+  var side, placeDeskCount = 0;
   var placeDesk = true;
   function preload(){
       solveEditor.load.image('logo', 'img/ionic.png');
@@ -84,7 +84,7 @@ angular.module('solve.controllers', [])
         //defines style to use for labels
         var style = { font: "32px Arial", fill: "#ffffff", wordWrap: true, wordWrapWidth: furnitures[furniture].obj.width, align: "center" };
         //creates label
-        furnitures[furniture].label = solveEditor.add.text(0, 0, furnitures[furniture].type , style);
+        furnitures[furniture].label = solveEditor.add.text(0, 0, furnitures[furniture].name , style);
         furnitures[furniture].label.anchor.set(0.5);
     }
     //solveEditor.time.events.loop(Phaser.Timer.SECOND, function(){ side++; }, this); 
@@ -131,8 +131,11 @@ angular.module('solve.controllers', [])
       while (placeDesk == true){
         //place desk in all possible positions if bed blocks all plugs, cancell itteration./
         setDesk(furnitures['Desk'].obj);
-        if(deskPlaceCount === 10){
-          break;
+        placeDeskCount++;
+        if(placeDeskCount >= 10){
+          placeDeskCount = 0;
+          placeDesk = false;
+          break;  
         }
         //place rest of furnitures
         //store in memory for next itteration
@@ -191,7 +194,7 @@ angular.module('solve.controllers', [])
           bottomRight(bed);
           break;
       default:
-          console.log('nothing to do here');
+          console.log('nothing left to do here');
           side = 0;
     } 
   }
@@ -202,13 +205,16 @@ angular.module('solve.controllers', [])
     if(isFlat(plug) !== isFlat(desk)){ //checks if items are the same orientation //sets default orientation
       temp = desk.width, desk.width = desk.height, desk.height = temp; //swap width with height 
     }
+    //alert(plugWall);
     switch(plugWall){
       case 'East': //for vertical arangements
         if(plug.y === floor.x || plug.y - desk.width < floor.x){
-          temp = desk.width, desk.width = desk.height, desk.height = temp; //flip for first itteration
+          temp = desk.width, desk.width = desk.height, desk.height = temp; //flip for first itteration if close enough to top wall
+        }
+        if(floor.x+desk.height > plug.y){ //checks if will overlap plugs
           topRight(desk);
         }
-      break; 
+      break;
     }
     var collision = false;
     solveEditor.physics.arcade.overlap(desk, furnitures['Bed'].obj, function(){ collision = true }, null, this);
@@ -217,13 +223,13 @@ angular.module('solve.controllers', [])
       //end itteration
     }else{
       floor.tint = 0xffffff;
-
     }
     if(floor.width === desk.x){ //if gets out of horizontal floor bounds
       desk.x -= 50; //account for phaser anchor
     } else if(floor.height === desk.y){ //or vertical bounds
       desk.y -= 50; //account for phaser anchor
     }
+    if(desk.y < floor.height || )
   }
   function solveForRemainingSpace(){
     //check overlap with group.
