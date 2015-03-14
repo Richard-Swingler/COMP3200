@@ -106,8 +106,8 @@ angular.module('solve.controllers', [])
     //   tracer.y += 50; 
     // }, 500);
   }
+  generateUserSolutions(furnitures, features);
   function update(){
-    generateUserSolutions(furnitures, features);
     for(var furniture in furnitures){
       centerText(furnitures[furniture].label, furnitures[furniture].obj); //for each furniture takes its label and adjusts the position if neede;
     } 
@@ -387,17 +387,22 @@ angular.module('solve.controllers', [])
     var remainingSpace = {};
 
     //Have a tracer 50 x 50 block go round each wall, records starting and ending value where there is a gap
-    tracer = solveEditor.add.sprite(50, 50 , 'grid');
+    tracer = solveEditor.add.sprite(50, 400 , 'grid');
+    tracer.body.customSeparateX  = true;
+    tracer.body.customSeparatey  = true;
 
     //first go down west wall and record free space pair -- tracer initialised at top of west wall
     console.log(floor.height / 50);
-    while(tracer.x < floor.height + floor.y - 50){
+    //while(tracer.x < floor.height + floor.y - 50){
       spaceTaken = checkAllCollisions(tracer);
       if(!spaceTaken){
 
       }
-      //solveEditor.physics.arcade.moveToXY(tracer, tracer.x, tracer.y + 50);
-    }
+      //solveEditor.physics.arcade.moveToXY(tracer, tracer.x, 10);
+      spaceTaken = checkAllCollisions(tracer);
+      tracer.y = 150;
+      checkAllCollisions(tracer);
+    //}
     return remainingSpace;
   }
   function checkOverlap(spriteA, spriteB) {
