@@ -15,6 +15,7 @@ angular.module('solve.controllers', [])
       solveEditor.load.image('door', 'img/door_floorplan.png');
       solveEditor.load.image('plug', 'img/plug_floorplan.png');
       solveEditor.load.image('window', 'img/window_floorplan.png');
+      solveEditor.load.image('button', 'img/save.png');
   }
   function create(){
     //scaling options
@@ -66,7 +67,7 @@ angular.module('solve.controllers', [])
       if(featuresData[feature].obj.width < featuresData[feature].obj.height){
         featuresData[feature].label.angle += -90;
       }
-      centerText(featuresData[feature].label, featuresData[feature].obj); //does not need to be done dynamically as features should nopt move.
+      centerText(featuresData[feature].label, featuresData[feature].obj); //does not need to be done dynamically as features should not move.
     }
     //loads furniture onto floor 
     furnitures = JSON.parse(window.localStorage.getItem('furniture'));
@@ -79,7 +80,7 @@ angular.module('solve.controllers', [])
         furnBmd.ctx.fill();
         furnitures[furniture].obj = restrictedFurn.create(50, 50, furnBmd);
         //defines style to use for labels
-        var style = {font: "32px Arial", fill: "#ffffff", wordWrap: true, wordWrapWidth: furnitures[furniture].obj.width, align: "center"};
+        var style = {font: "32px Arial", fill: "#000000", wordWrap: true, wordWrapWidth: furnitures[furniture].obj.width, align: "center"};
         //creates label
         furnitures[furniture].label = solveEditor.add.text(0, 0, furnitures[furniture].name , style);
         furnitures[furniture].label.anchor.set(0.5);
@@ -102,23 +103,61 @@ angular.module('solve.controllers', [])
     logo.inputEnabled = true;
     logo.input.enableDrag();
     for(side = 0; side < 8; side ++){
-      console.log('~~~~~~~~~~');
+      console.log('~~Attepmt~~');
       console.log(side);
-      console.log('~~~~~~~~~~');
+      console.log('~~~~~~~~~~~');
       generateUserSolutions(furnitures, features);
     }
+    //sort solutions by biggest useable area
+    $scope.solutions.sort(solutionSort);
+    //store in local storage
+    window.localStorage.setItem('Solutions', JSON.stringify($scope.solutions));
+    //loop through answers every second/3
+    var time = 0;
+    solveEditor.time.events.loop(Phaser.Timer.SECOND/2, function(){ 
+      if (time < 5){
+        furnitures['Desk'].obj.x = $scope.solutions[time].desk.x;
+        furnitures['Desk'].obj.y = $scope.solutions[time].desk.y;
+        furnitures['Desk'].obj.height = $scope.solutions[time].desk.height;
+        furnitures['Desk'].obj.width = $scope.solutions[time].desk.width;
+        furnitures['Bed'].obj.x = $scope.solutions[time].bed.x;
+        furnitures['Bed'].obj.y = $scope.solutions[time].bed.y;
+        furnitures['Bed'].obj.height = $scope.solutions[time].bed.height;
+        furnitures['Bed'].obj.width = $scope.solutions[time].bed.width;
+        otherFurn.forEach(function(furn){
+           $scope.solutions[time].other.forEach(function(saved){
+            if(saved.name === furn.name){
+              furn.x = saved.x;
+              furn.y = saved.y;
+              furn.height = saved.height;
+              furn.width = saved.width;
+            }
+           });
+        });
+        time++;
+      }else{
+        time = 0;
+      }
+    }, this); 
+    
+  }
+  function populateButton(saved){
+
+  }
+  function solutionSort(a,b) {
+    if (a.useable > b.useable)
+       return -1;
+    if (a.useable < b.tuseableype)
+      return 1;
+    return 0;
   }
   function update(){
     //for each furniture takes its label and adjusts the position if needed
     for(var furniture in furnitures){
       centerText(furnitures[furniture].label, furnitures[furniture].obj); 
     }
-    //console.log($scope.solutions);
   }
   function render(){
-    //solveEditor.debug.body(sprites);
-    // solveEditor.debug.spriteInfo(tracer, 32, 32);
-    solveEditor.debug.spriteInfo(furnitures['Wardrobe'].obj, 32, 32);
   }
   function createBmd(item){
     var bmd = solveEditor.add.bitmapData(item['recX'],item['recY']);
@@ -134,120 +173,133 @@ angular.module('solve.controllers', [])
     //set bed orientation
     rotateBed(furnitures['Bed'].obj); //get each possible possition for a bed
     if(checkOverlap(door, furnitures['Bed'].obj)){ //checks if in way of door (first furniture to be place so no other collision there)
-      floor.tint = 0xff0000;
       console.log('bed in front of door');
       //end itteration
     }else{
       placeDeskCount = 0;
       placeDesk = true;
-      floor.tint = 0xffffff;
       while (placeDesk){
         //place desk in all possible positions if bed blocks all plugs, cancell itteration./
         setDesk(furnitures['Desk'].obj);
         if(!cancel){ //[TODO] -> check if solution is valid
           //Main restrictions have now been inputed, this has now reduced the available space
           //Remaining space needs to be calculated and coordinates stored in an array (for this itteration)
-          var spaceLeft = calculateRemainingSpace(furnitures['Bed'].obj, furnitures['Desk'].obj);
-          //console.log(spaceLeft);
+          var spaceLeft = calculateRemainingSpace(floor);
           //place rest of furnitures in remaining space
-          var placedItems = solveForRemainingSpace(remainingFurnitureData, spaceLeft);
+          solveForRemainingSpace(remainingFurnitureData, spaceLeft);
           //prepare for store
-          var other = [];
-          otherFurn.forEach(function(item){
-            other.push({name: item.name, x: item.x, y: item.y, width: item.width, height: item.height});
-          });
-          //check effectiveness of solution by measuring largest connected rectangle
-          //generate rectangle size of floor and make it smaller till it fits
-          var checkerRec = solveEditor.add.sprite(floor.x, floor.y, 'grid');
-          checkerRec.width = floor.width;
-          checkerRec.height = floor.height;
-          while(checkAllCollisions(checkerRec, true, true)){
-            checkerRec.x += 50;
-            checkerRec.y += 50;
-            checkerRec.width -= 100; //twice as much to componsate with changed x
-            checkerRec.height -= 100;//twice as much to componsate with changed y
+          if(!cancel){
+            var other = [];
+            otherFurn.forEach(function(item){
+              other.push({name: item.name, x: item.x, y: item.y, width: item.width, height: item.height});
+            });
+            // check effectiveness of solution by measuring largest connected rectangle [TODO] --> put in function to clear up logic
+            var check = solveEditor.add.sprite(50, 50, 'grid');
+            var rec = solveEditor.add.sprite(50, 50, 'door');
+            rec.height = 50;
+            rec.width = 50;
+            while(checkAllCollisions(check, true, true) && checkOverlap(check, floor)){
+              if(check.x + check.width >= floor.x + floor.width){
+                check.x = floor.x;
+                check.y += 50;
+              }
+              check.x += 50;
+            }
+            rec.x = check.x;
+            rec.y = check.y;
+            while(!checkAllCollisions(check, true, true) && checkOverlap(check, floor)){
+              check.x += 50;
+            }
+            rec.width = check.x - rec.x;
+            check.x = rec.x;
+            while(!checkAllCollisions(check, true, true) && checkOverlap(check, floor)){
+              check.y += 50;
+              rec.height = check.y - rec.y;
+              if(checkAllCollisions(rec, true, true)){
+                rec.height -= 50;
+                break;
+              }
+            }
+            var check1 = solveEditor.add.sprite(50, 50, 'grid');
+            var rec1 = solveEditor.add.sprite(50, 50, 'door');
+            rec1.height = 50;
+            rec1.width = 50;
+            while(checkAllCollisions(check1, true, true) && checkOverlap(check1, floor)){
+              if(check1.y + check1.height >= floor.y + floor.height){
+                check1.y = floor.y;
+                check1.x += 50;
+              }
+              check1.y += 50;
+            }
+            rec1.x = check1.x;
+            rec1.y = check1.y;
+            while(!checkAllCollisions(check1, true, true) && checkOverlap(check1, floor)){
+              check1.y += 50;
+            }
+            rec1.height = check1.y - rec1.y;
+            check1.y = rec1.y;
+            while(!checkAllCollisions(check1, true, true) && checkOverlap(check1, floor)){
+              check1.x += 50;
+              rec1.width = check1.x - rec1.x;
+              if(checkAllCollisions(rec1, true, true)){
+                rec.width -= 50;
+                break;
+              }
+            }
+            var useable = (rec.width * rec.height > rec1.width * rec1.height)? rec.width * rec.height : rec1.width * rec1.height;
+            check.kill();
+            check1.kill();
+            rec.kill();
+            rec1.kill();
+            //compile solution in memory
+            $scope.solutions.push(
+              {bed: 
+                {x: furnitures['Bed'].obj.x, y: furnitures['Bed'].obj.y, height: furnitures['Bed'].obj.height, width: furnitures['Bed'].obj.width}, 
+              desk: 
+                {x: furnitures['Desk'].obj.x, y: furnitures['Desk'].obj.y, height: furnitures['Desk'].obj.height, width: furnitures['Desk'].obj.width},  
+              other: other,
+              useable: useable,
+            });
+            console.log('solution saved!');
           }
-            checkerRec.x -= 50;
-            checkerRec.y -= 50;
-            checkerRec.width += 100; //twice as much to componsate with changed x
-            checkerRec.height += 100;//twice as much to componsate with changed y
-            console.log(checkAllCollisions(checkerRec, true, true));
-          //this has given a base now increase each side until reaches maximum size
-          // while(!checkAllCollisions(checkerRec, true, true)){
-          //   console.log('hey');
-          //   checkerRec.x += 50;
-          //   //checkerRec.width +=200; //to accomodate change in x
-          //   console.log(checkAllCollisions(checkerRec, true, true));
-          //   break;
-          // }
-          //compile solution in memory
-          $scope.solutions.push(
-            {bed: 
-              {x: furnitures['Bed'].obj.x, y: furnitures['Bed'].obj.y, height: furnitures['Bed'].obj.height, width: furnitures['Bed'].obj.width}, 
-            desk: 
-              {x: furnitures['Desk'].obj.x, y: furnitures['Desk'].obj.y, height: furnitures['Desk'].obj.height, width: furnitures['Desk'].obj.width},  
-            other: other,
-            useable: ''
-          });
-          console.log('solution saved!');
         } 
         cancel = false;
         placeDeskCount++;
       }
     }
-    //store in local storage
-    //window.localStorage.setItem('Solutions', JSON.stringify(/*$scope.solutions*/));
-    //check effectiveness of solution then arrange by best to low
-    
   } 
   function rotateBed(bed){ //rotates bed based on side variable (currently every 2 seconds)
     switch(side) {
       case 0:
-          if(!isFlat(bed)){
-            temp = bed.width, bed.width = bed.height, bed.height = temp; //swap width with height 
-          }
+          if(!isFlat(bed)){temp = bed.width, bed.width = bed.height, bed.height = temp;} //swap width with height 
           topLeft(bed);
           break;
       case 1:
-          if(isFlat(bed)){
-            temp = bed.width, bed.width = bed.height, bed.height = temp; //swap width with height 
-          }
+          if(isFlat(bed)){temp = bed.width, bed.width = bed.height, bed.height = temp;} //swap width with height 
           topLeft(bed);
           break;
       case 2:
-          if(!isFlat(bed)){
-            temp = bed.width, bed.width = bed.height, bed.height = temp; //swap width with height 
-          }
+          if(!isFlat(bed)){temp = bed.width, bed.width = bed.height, bed.height = temp;} //swap width with height 
           topRight(bed);
           break;
       case 3:
-          if(isFlat(bed)){
-            temp = bed.width, bed.width = bed.height, bed.height = temp; //swap width with height 
-          }
+          if(isFlat(bed)){temp = bed.width, bed.width = bed.height, bed.height = temp;} //swap width with height 
           topRight(bed);
           break;
       case 4:
-          if(!isFlat(bed)){
-            temp = bed.width, bed.width = bed.height, bed.height = temp; //swap width with height 
-          }
+          if(!isFlat(bed)){temp = bed.width, bed.width = bed.height, bed.height = temp;} //swap width with height 
           bottomLeft(bed);
           break;
       case 5:
-          if(isFlat(bed)){
-            temp = bed.width, bed.width = bed.height, bed.height = temp; //swap width with height 
-          }
+          if(isFlat(bed)){temp = bed.width, bed.width = bed.height, bed.height = temp;} //swap width with height 
           bottomLeft(bed);
           break;
       case 6:
-          if(!isFlat(bed)){
-            temp = bed.width, bed.width = bed.height, bed.height = temp; //swap width with height 
-          }
+          if(!isFlat(bed)){temp = bed.width, bed.width = bed.height, bed.height = temp;} //swap width with height 
           bottomRight(bed);
           break;
       case 7:
-          if(isFlat(bed)){
-            temp = bed.width, bed.width = bed.height, bed.height = temp; //swap width with height 
-          }
+          if(isFlat(bed)){temp = bed.width, bed.width = bed.height, bed.height = temp;} //swap width with height 
           bottomRight(bed);
           break;
       default:
@@ -344,13 +396,10 @@ angular.module('solve.controllers', [])
         }
       break;
     }
-    if(checkOverlap(furnitures['Bed'].obj, desk) || checkOverlap(door, desk)){ //checks if in way of door or bed (currently placed features)
-      floor.tint = 0xff0000;
+    if(checkIntersect(furnitures['Bed'].obj, desk) || checkOverlap(door, desk)){ //checks if in way of door or bed (currently placed features)
       console.log('desk is obstructing another item');
       cancel = true; 
       //end itteration
-    }else{
-      floor.tint = 0xffffff;
     }
     if(floor.width === desk.x){ //if gets out of horizontal floor bounds
       desk.x -= 50; //account for phaser anchor
@@ -368,6 +417,10 @@ angular.module('solve.controllers', [])
         placeRemaining(gap.orientation, remainingFurnitureTemp, gap);
       });
     }
+    remainingFurnitureTemp.forEach(function(gap) {
+      //if any items left unplaced
+      cancel = true;
+    });
   }
   function placeRemaining(orientation, obj, gap){
     var toRemove = [];
@@ -507,25 +560,25 @@ angular.module('solve.controllers', [])
     obj.y = floor.height - obj.height + 50; // +50 to account for phaser anchor
   }
   //calculates wall space remaining and provides coordinates in an array
-  function calculateRemainingSpace(bed, desk){
+  function calculateRemainingSpace(container){
     var remainingSpace = {west: [], south: [], east: [], north: []};
     //Have a tracer 50 x 50 block go round each wall, records starting and ending value where there is a gap
     var tracer = solveEditor.add.sprite(50, 50, 'grid');
 
     //first go down west wall and record free space pair -- tracer initialised at top of west wall
-    moveTracerVertical(tracer, remainingSpace);
+    moveTracerVertical(tracer, remainingSpace, container);
    
     //then East wall - move minus 50 for first itteration
     topRight(tracer);
-    moveTracerVertical(tracer, remainingSpace);
+    moveTracerVertical(tracer, remainingSpace, container);
 
     //then North wall
     topLeft(tracer);
-    moveTracerHorizontal(tracer, remainingSpace);
+    moveTracerHorizontal(tracer, remainingSpace, container);
 
     //then south wall
     bottomLeft(tracer);
-    moveTracerHorizontal(tracer, remainingSpace);
+    moveTracerHorizontal(tracer, remainingSpace, container);
 
     tracer.kill();
     return remainingSpace;
@@ -603,11 +656,11 @@ angular.module('solve.controllers', [])
     }
     return collides;
   }
-  function moveTracerVertical(tracer, remainingSpace){
+  function moveTracerVertical(tracer, remainingSpace, box){
     var firstFree = true;
     var save = false;
     var gap = {x: '', y: '', width: '', height: ''};
-    while(tracer.y < floor.height + floor.y){
+    while(tracer.y < box.height + box.y){
       spaceTaken = checkAllCollisions(tracer, false);
       if(!spaceTaken){
         if(firstFree){
@@ -615,7 +668,7 @@ angular.module('solve.controllers', [])
           gap.x = tracer.x;
           gap.y = tracer.y; 
           firstFree = false;     
-        }else if(tracer.y + tracer.height === floor.y + floor.height){ //if hits end of walll
+        }else if(tracer.y + tracer.height === box.y + box.height){ //if hits end of walll
           tracer.y += 50;
           save = true;
         }
@@ -643,11 +696,11 @@ angular.module('solve.controllers', [])
       tracer.y += 50;
     }
   }
-  function moveTracerHorizontal(tracer, remainingSpace){
+  function moveTracerHorizontal(tracer, remainingSpace, box){
     var firstFree = true;
     var save = false;
     var gap = {x: '', y: '', width: '', height: ''};
-    while(tracer.x < floor.width + floor.x){
+    while(tracer.x < box.width + box.x){
       spaceTaken = checkAllCollisions(tracer, false);
       if(!spaceTaken){
         if(firstFree){
@@ -656,7 +709,7 @@ angular.module('solve.controllers', [])
           gap.y = tracer.y; 
           firstFree = false;     
         }
-        if(tracer.x + tracer.width === floor.x + floor.width){ //if hits end of walll
+        if(tracer.x + tracer.width === box.x + box.width){ //if hits end of walll
           tracer.x += 50;
           save = true;
         }
