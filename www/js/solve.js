@@ -3,10 +3,12 @@ angular.module('solve.controllers', [])
 .controller('SolveCtrl', function($scope) {
   
   var solveEditor = new Phaser.Game(1024, 705, Phaser.AUTO, 'solveCanvas', { preload: preload, create: create, update:update, render:render}, false);
-  var floor, furnitures, logo, sprites, features, door, plug, plugWall, otherFurn; //initialise global variables [TODO] Replace by this. when eventually using states
+  var floor, furnitures, logo, restrictedFurn, features, door, plug, plugWall, otherFurn,glass; //initialise global variables [TODO] Replace by this. when eventually using states
   var side, placeDeskCount = 0;
   var placeDesk = true;
-  $scope.solutions = [];
+  var cancel = false;
+  $scope.solutions  = [];
+  remainingFurnitureData = [];
   function preload(){
       solveEditor.load.image('logo', 'img/ionic.png');
       solveEditor.load.image('grid', 'img/grid.png');
@@ -16,7 +18,7 @@ angular.module('solve.controllers', [])
   }
   function create(){
     //scaling options
-    solveEditor.physics.startSystem(Phaser.Physics.ARCADE);
+    //solveEditor.physics.startSystem(Phaser.Physics.ARCADE);
     this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
     //have the game centered horizontally
     this.scale.pageAlignHorizontally = true;
@@ -29,7 +31,7 @@ angular.module('solve.controllers', [])
     floorBmd.ctx.fillStyle = '#ffffff';
     floorBmd.ctx.fill();
     floor = solveEditor.add.sprite(50, 50, floorBmd);
-    solveEditor.physics.enable(floor, Phaser.Physics.ARCADE);
+    //solveEditor.physics.enable(floor, Phaser.Physics.ARCADE);
 
     //loads features onto floor
     featuresData = JSON.parse(window.localStorage.getItem('features'));
@@ -52,6 +54,7 @@ angular.module('solve.controllers', [])
       }
       else if(featuresData[feature].type === 'window'){
         featuresData[feature].obj = solveEditor.add.tileSprite(featuresData[feature].x -50 , featuresData[feature].y ,featuresData[feature].width, featuresData[feature].height, 'window');
+        glass = featuresData[feature].obj;
         features.add(featuresData[feature].obj);
       }
       //defines style to use for labels
@@ -63,26 +66,18 @@ angular.module('solve.controllers', [])
       if(featuresData[feature].obj.width < featuresData[feature].obj.height){
         featuresData[feature].label.angle += -90;
       }
-      centerText(featuresData[feature].label, featuresData[feature].obj); //does nto need to be done dynamically as features should nopt move.
-      solveEditor.physics.enable(featuresData[feature].obj, Phaser.Physics.ARCADE);
-      featuresData[feature].obj.body.collideWorldBounds = true;
-      featuresData[feature].obj.body.immovable = true; 
+      centerText(featuresData[feature].label, featuresData[feature].obj); //does not need to be done dynamically as features should nopt move.
     }
     //loads furniture onto floor 
     furnitures = JSON.parse(window.localStorage.getItem('furniture'));
-    sprites = solveEditor.add.group();
+    restrictedFurn = solveEditor.add.group();
     otherFurn = solveEditor.add.group();
     for(var furniture in furnitures){
         var furnBmd = createBmd(furnitures[furniture]);
         furnBmd.ctx.fillStyle = '#0080ff'; //[TODO] load different texture based on type 
         furnBmd.shiftHSL(0.1);
         furnBmd.ctx.fill();
-        furnitures[furniture].obj = sprites.create(50, 50, furnBmd);
-        solveEditor.physics.enable(furnitures[furniture].obj, Phaser.Physics.ARCADE);
-        furnitures[furniture].obj.inputEnabled = true;
-        // console.log(furnitures[furniture].height);
-        furnitures[furniture].obj.input.enableDrag();
-        furnitures[furniture].obj.input.enableSnap(50, 50, false, true); 
+        furnitures[furniture].obj = restrictedFurn.create(50, 50, furnBmd);
         //defines style to use for labels
         var style = {font: "32px Arial", fill: "#ffffff", wordWrap: true, wordWrapWidth: furnitures[furniture].obj.width, align: "center"};
         //creates label
@@ -90,33 +85,40 @@ angular.module('solve.controllers', [])
         furnitures[furniture].label.anchor.set(0.5);
         furnitures[furniture].obj.type = furnitures[furniture].type;
         if(furnitures[furniture].type !== 'Bed' && furnitures[furniture].type !== 'Desk'){
+          furnitures[furniture].obj.name = furniture;
           otherFurn.add(furnitures[furniture].obj);
+          remainingFurnitureData.push(furnitures[furniture]);
         }
+        //all remaining furniture in flat orientation
+        remainingFurnitureData.forEach(function(item){
+          if(!isFlat(item.obj)){
+            temp = item.obj.width, item.obj.width = item.obj.height, item.obj.height = temp;
+          }
+        });
+        //sort array by largest flat side (furniture will be flipped to align with wall)
+        remainingFurnitureData.sort(compare);
     }
-    //solveEditor.time.events.loop(Phaser.Timer.SECOND, function(){ side++; }, this); 
     logo = solveEditor.add.sprite(0,0,'logo');
     logo.inputEnabled = true;
     logo.input.enableDrag();
-    //setInterval(function(){ setDesk(furnitures['Desk'].obj); }, 500);
-    // setInterval(function(){ 
-    // spaceTaken = checkAllCollisions(tracer);
-    //   if(!spaceTaken){
-
-    //   }
-    //   tracer.y += 50; 
-    // }, 500);
+    for(side = 0; side < 8; side ++){
+      console.log('~~~~~~~~~~');
+      console.log(side);
+      console.log('~~~~~~~~~~');
+      generateUserSolutions(furnitures, features);
+    }
   }
-  generateUserSolutions(furnitures, features);
   function update(){
+    //for each furniture takes its label and adjusts the position if needed
     for(var furniture in furnitures){
-      centerText(furnitures[furniture].label, furnitures[furniture].obj); //for each furniture takes its label and adjusts the position if neede;
-    } 
+      centerText(furnitures[furniture].label, furnitures[furniture].obj); 
+    }
     //console.log($scope.solutions);
   }
   function render(){
     //solveEditor.debug.body(sprites);
-    solveEditor.debug.spriteInfo(tracer, 32, 32);
-    solveEditor.debug.spriteInfo(door, 32, 100);
+    // solveEditor.debug.spriteInfo(tracer, 32, 32);
+    solveEditor.debug.spriteInfo(furnitures['Wardrobe'].obj, 32, 32);
   }
   function createBmd(item){
     var bmd = solveEditor.add.bitmapData(item['recX'],item['recY']);
@@ -133,38 +135,69 @@ angular.module('solve.controllers', [])
     rotateBed(furnitures['Bed'].obj); //get each possible possition for a bed
     if(checkOverlap(door, furnitures['Bed'].obj)){ //checks if in way of door (first furniture to be place so no other collision there)
       floor.tint = 0xff0000;
+      console.log('bed in front of door');
       //end itteration
     }else{
+      placeDeskCount = 0;
+      placeDesk = true;
       floor.tint = 0xffffff;
       while (placeDesk){
         //place desk in all possible positions if bed blocks all plugs, cancell itteration./
         setDesk(furnitures['Desk'].obj);
-        console.log(placeDeskCount);
+        if(!cancel){ //[TODO] -> check if solution is valid
+          //Main restrictions have now been inputed, this has now reduced the available space
+          //Remaining space needs to be calculated and coordinates stored in an array (for this itteration)
+          var spaceLeft = calculateRemainingSpace(furnitures['Bed'].obj, furnitures['Desk'].obj);
+          //console.log(spaceLeft);
+          //place rest of furnitures in remaining space
+          var placedItems = solveForRemainingSpace(remainingFurnitureData, spaceLeft);
+          //prepare for store
+          var other = [];
+          otherFurn.forEach(function(item){
+            other.push({name: item.name, x: item.x, y: item.y, width: item.width, height: item.height});
+          });
+          //check effectiveness of solution by measuring largest connected rectangle
+          //generate rectangle size of floor and make it smaller till it fits
+          var checkerRec = solveEditor.add.sprite(floor.x, floor.y, 'grid');
+          checkerRec.width = floor.width;
+          checkerRec.height = floor.height;
+          while(checkAllCollisions(checkerRec, true, true)){
+            checkerRec.x += 50;
+            checkerRec.y += 50;
+            checkerRec.width -= 100; //twice as much to componsate with changed x
+            checkerRec.height -= 100;//twice as much to componsate with changed y
+          }
+            checkerRec.x -= 50;
+            checkerRec.y -= 50;
+            checkerRec.width += 100; //twice as much to componsate with changed x
+            checkerRec.height += 100;//twice as much to componsate with changed y
+            console.log(checkAllCollisions(checkerRec, true, true));
+          //this has given a base now increase each side until reaches maximum size
+          // while(!checkAllCollisions(checkerRec, true, true)){
+          //   console.log('hey');
+          //   checkerRec.x += 50;
+          //   //checkerRec.width +=200; //to accomodate change in x
+          //   console.log(checkAllCollisions(checkerRec, true, true));
+          //   break;
+          // }
+          //compile solution in memory
+          $scope.solutions.push(
+            {bed: 
+              {x: furnitures['Bed'].obj.x, y: furnitures['Bed'].obj.y, height: furnitures['Bed'].obj.height, width: furnitures['Bed'].obj.width}, 
+            desk: 
+              {x: furnitures['Desk'].obj.x, y: furnitures['Desk'].obj.y, height: furnitures['Desk'].obj.height, width: furnitures['Desk'].obj.width},  
+            other: other,
+            useable: ''
+          });
+          console.log('solution saved!');
+        } 
+        cancel = false;
         placeDeskCount++;
-        //Main restrictions have now been inputed, this has now reduced the available space
-        //Remaining space needs to be calculated and coordinates stored in an array (for this itteration)
-        var spaceLeft = calculateRemainingSpace(furnitures['Bed'].obj, furnitures['Desk'].obj, floor);
-        //console.log(spaceLeft);
-        //place rest of furnitures in remaining space
-        if(false){ //[TODO] -> check if solution is valid
-          console.log('true'); 
-          continue;
-        }
-        //compile solution in memory
-        $scope.solutions.push(
-          {bed: 
-            {x: furnitures['Bed'].obj.x, y: furnitures['Bed'].obj.y, height: furnitures['Bed'].obj.height, width: furnitures['Bed'].obj.width}, 
-          desk: 
-            {x: furnitures['Desk'].obj.x, y: furnitures['Desk'].obj.y, height: furnitures['Desk'].obj.height, width: furnitures['Desk'].obj.width},  
-          other: ['null']
-        });
       }
-      //side ++;
-      placeDeskCount = 0;
-      //placeDesk = true;
     }
     //store in local storage
     //window.localStorage.setItem('Solutions', JSON.stringify(/*$scope.solutions*/));
+    //check effectiveness of solution then arrange by best to low
     
   } 
   function rotateBed(bed){ //rotates bed based on side variable (currently every 2 seconds)
@@ -219,12 +252,10 @@ angular.module('solve.controllers', [])
           break;
       default:
           console.log('nothing left to do here');
-          side = 0;
     } 
   }
   function setDesk(desk){
     desk.alpha = 0.5;  
-
     if(isFlat(plug) !== isFlat(desk)){ //checks if items are the same orientation //sets default orientation to be the same as the plug
       temp = desk.width, desk.width = desk.height, desk.height = temp; //swap width with height 
       topRight(desk);
@@ -313,11 +344,10 @@ angular.module('solve.controllers', [])
         }
       break;
     }
-    var collision = false;
-    solveEditor.physics.arcade.overlap(desk, furnitures['Bed'].obj, function(){ collision = true }, null, this);
-    if(collision || checkOverlap(door, desk)){ //checks if in way of door or bed (currently placed features)
+    if(checkOverlap(furnitures['Bed'].obj, desk) || checkOverlap(door, desk)){ //checks if in way of door or bed (currently placed features)
       floor.tint = 0xff0000;
-      //continue; //breaks loop itteration
+      console.log('desk is obstructing another item');
+      cancel = true; 
       //end itteration
     }else{
       floor.tint = 0xffffff;
@@ -329,9 +359,107 @@ angular.module('solve.controllers', [])
       desk.y -= 50; //account for phaser anchor
     }
   }
-  function solveForRemainingSpace(group){
-    //check overlap with group.
-
+  function solveForRemainingSpace(group, availableSpace){
+    //create non-reference temp version of the data to work on for this itteration
+    //first try and fill gaps in west wall
+    var remainingFurnitureTemp = group.slice();
+    for(space in availableSpace){
+      availableSpace[space].forEach(function(gap) {
+        placeRemaining(gap.orientation, remainingFurnitureTemp, gap);
+      });
+    }
+  }
+  function placeRemaining(orientation, obj, gap){
+    var toRemove = [];
+    // try and place each remaining items
+    obj.forEach(function(item){
+      if(orientation === 'east' || orientation === 'west'){
+        //flip items to wall orientation
+        if(isFlat(item.obj)){
+          temp = item.obj.width, item.obj.width = item.obj.height, item.obj.height = temp;
+        }
+        //try an fit each item
+        if(item.obj.height <= gap.height){
+          item.obj.x = gap.x;
+          item.obj.y = gap.y + gap.height - item.obj.height; //start at bottom
+          if(orientation === 'east'){item.obj.x -= item.obj.width;}
+          //if item is labelled tall, do not place in front of window
+          if(item.type === 'Tall' && checkIntersect(item.obj, glass)){
+            //try and find position allong gap
+            if(glass.y + glass.height < glass.y + glass.height + item.obj.height <= floor.y + floor.height && !checkAllCollisions(item.obj, false)){
+              item.obj.x = gap.x - item.obj.width;
+              item.obj.y = gap.y + gap.height;
+              if(orientation === 'east'){item.obj.y -= item.obj.height;}
+            }else{
+              //reset position to default (off screen)
+              item.obj.x = 1000;
+              item.obj.y = 1000;
+            }
+          }
+          if(!checkAllCollisions(item.obj, false, true) && checkOverlap(floor, item.obj)){
+            //modify available space to reflect now ocupied 
+            gap.y = item.obj.y + item.obj.height;
+            gap.height = gap.height - item.obj.height;
+            //remove object from remainingFurnitureData
+            toRemove.push(obj.indexOf(item));
+          }
+          else{
+            //reset position to default (off screen)
+            item.obj.x = 1000;
+            item.obj.y = 1000; 
+          }
+        }
+      }
+      else if(orientation === 'south' || orientation === 'north'){
+        //flip items to wall orientation
+        if(!isFlat(item.obj)){
+          temp = item.obj.width, item.obj.width = item.obj.height, item.obj.height = temp;
+        }
+        //try an fit each item
+        if(item.obj.width <= gap.width){
+          //if item is labelled tall, do not place in front of window
+          item.obj.x = gap.x;
+          item.obj.y = gap.y; 
+          if(orientation === 'south'){item.obj.y -= item.obj.height;} //account for anchor
+          if(item.type === 'Tall' && checkIntersect(item.obj, glass)){
+            //try and find position allong gap
+            if(glass.x + glass.width < glass.x + glass.width + item.obj.width <= floor.x + floor.width && !checkAllCollisions(item.obj, false)){
+              item.obj.x = glass.x + glass.width;
+              item.obj.y = gap.y;
+              if(orientation === 'south'){item.obj.y -= item.obj.height;}
+            }else{
+              //reset position to default (off screen)
+              item.obj.x = 1000;
+              item.obj.y = 1000;
+            }
+          }
+          if(!checkAllCollisions(item.obj, false, true)  && checkOverlap(floor, item.obj)){
+            //modify available space to reflect now ocupied 
+            gap.x = item.obj.x + item.obj.width;
+            gap.width = gap.width - item.obj.width;
+            //remove object from remainingFurnitureData
+            toRemove.push(obj.indexOf(item));
+          }else{
+            //reset position to default (off screen)
+            item.obj.x = 1000;
+            item.obj.y = 1000; 
+          }
+        }
+      }
+    });
+    //remove any placed items
+    toRemove.sort(function(a, b){return b-a});
+    toRemove.forEach(function(placed){
+      obj.splice(placed, 1);
+    });
+    toRemove = [];    
+  }
+  function compare(a,b) {
+    if (a.type > b.type)
+       return -1;
+    if (a.type < b.type)
+      return 1;
+    return 0;
   }
   function checkWall(plug){
     if(checkNorth(floor, plug)){
@@ -365,66 +493,195 @@ angular.module('solve.controllers', [])
   function topLeft(obj){
     obj.x = floor.x;
     obj.y = floor.y;
-    //side ++;
   }
   function topRight(obj){
     obj.x = floor.width - obj.width +50; // +50 to account for phasewr anchor
     obj.y = floor.y;
-    //side ++;
   }
   function bottomLeft(obj){
     obj.x = floor.x;
     obj.y = floor.height - obj.height + 50; // +50 to account for phaser anchor
-    //side ++;
   }
   function bottomRight(obj){
     obj.x = floor.width - obj.width +50; // +50 to account for phasewr anchor
     obj.y = floor.height - obj.height + 50; // +50 to account for phaser anchor
-    //side ++;
   }
-  //calculates wall space reamining and provides coordinates in an array
-  function calculateRemainingSpace(bed, desk, floor){
-    var remainingSpace = {};
-
+  //calculates wall space remaining and provides coordinates in an array
+  function calculateRemainingSpace(bed, desk){
+    var remainingSpace = {west: [], south: [], east: [], north: []};
     //Have a tracer 50 x 50 block go round each wall, records starting and ending value where there is a gap
-    tracer = solveEditor.add.sprite(50, 400 , 'grid');
-    tracer.body.customSeparateX  = true;
-    tracer.body.customSeparatey  = true;
+    var tracer = solveEditor.add.sprite(50, 50, 'grid');
 
     //first go down west wall and record free space pair -- tracer initialised at top of west wall
-    console.log(floor.height / 50);
-    //while(tracer.x < floor.height + floor.y - 50){
-      spaceTaken = checkAllCollisions(tracer);
-      if(!spaceTaken){
+    moveTracerVertical(tracer, remainingSpace);
+   
+    //then East wall - move minus 50 for first itteration
+    topRight(tracer);
+    moveTracerVertical(tracer, remainingSpace);
 
-      }
-      //solveEditor.physics.arcade.moveToXY(tracer, tracer.x, 10);
-      spaceTaken = checkAllCollisions(tracer);
-      tracer.y = 150;
-      checkAllCollisions(tracer);
-    //}
+    //then North wall
+    topLeft(tracer);
+    moveTracerHorizontal(tracer, remainingSpace);
+
+    //then south wall
+    bottomLeft(tracer);
+    moveTracerHorizontal(tracer, remainingSpace);
+
+    tracer.kill();
     return remainingSpace;
   }
   function checkOverlap(spriteA, spriteB) {
-    var boundsA = spriteA.getBounds();
+    //get bounds broken but creates expected object type (PIXI.Rectangle) then modifyed with actual values
+    var boundsA = spriteA.getBounds(); 
+    boundsA.x = spriteA.x;
+    boundsA.y = spriteA.y;
+    boundsA.height = spriteA.height;
+    boundsA.width = spriteA.width;
     var boundsB = spriteB.getBounds();
-    return Phaser.Rectangle.containsRect(boundsA, boundsB); 
+    boundsB.x = spriteB.x;
+    boundsB.y = spriteB.y;
+    boundsB.height = spriteB.height;
+    boundsB.width = spriteB.width;
+    //check collision both ways sprite a in spriteb and vice versa
+    return (Phaser.Rectangle.containsRect(boundsB, boundsA) || Phaser.Rectangle.containsRect(boundsA, boundsB))? true : false; 
   }
-  function checkAllCollisions(tracerObj){
-    solveEditor.physics.arcade.enable(solveEditor.world,true);
-    console.log('====='); 
-    console.log(tracerObj.y);
-    console.log(tracerObj.x);
-    console.log(door.y);
-    console.log(door.x);
-    console.log(solveEditor.physics.arcade.overlap(door, tracerObj));
-    console.log(solveEditor.physics.arcade.overlap(otherFurn, tracerObj) );
-    console.log(solveEditor.physics.arcade.overlap(sprites, tracerObj));
-    console.log('=====');
-
-    if (solveEditor.physics.arcade.overlap(door, tracerObj) || solveEditor.physics.arcade.overlap(otherFurn, tracerObj) || solveEditor.physics.arcade.overlap(sprites, tracerObj)){
-      return true;
+  function checkIntersect(spriteA, spriteB) {
+    //get bounds broken but creates expected object type (PIXI.Rectangle) then modifyed with actual values
+    var boundsA = spriteA.getBounds(); 
+    boundsA.x = spriteA.x;
+    boundsA.y = spriteA.y;
+    boundsA.height = spriteA.height;
+    boundsA.width = spriteA.width;
+    var boundsB = spriteB.getBounds();
+    boundsB.x = spriteB.x;
+    boundsB.y = spriteB.y;
+    boundsB.height = spriteB.height;
+    boundsB.width = spriteB.width;
+    var instersect = Phaser.Rectangle.intersection(boundsB, boundsA);
+    return instersect.width !== 0 && instersect.height !== 0; 
+  }
+  function checkAllCollisions(tracerObj, checkOtherFurn, intersects){
+    var collides = false;
+    if(typeof(intersects) === 'undefined' || intersects === false){
+      //check placed furniture 
+      restrictedFurn.forEach(function(item){
+        if(checkOverlap(item, tracerObj)){
+          collides = true;
+        }
+      });
+      //check other furniture
+      if(typeof(checkOtherFurn) === 'undefined' || checkOtherFurn === true){
+        otherFurn.forEach(function(item){
+          if(checkOverlap(item, tracerObj)){
+            collides = true;
+          }
+        });
+      }
+      //check door
+      if(checkOverlap(door, tracerObj)){
+        collides = true;
+      }
+    }else{
+      //check placed furniture 
+      restrictedFurn.forEach(function(item){
+        if(checkIntersect(item, tracerObj)){
+          collides = true;
+        }
+      });
+      //check other furniture
+      if(typeof(checkOtherFurn) === 'undefined' || checkOtherFurn === true){
+        otherFurn.forEach(function(item){
+          if(checkIntersect(item, tracerObj)){
+            collides = true;
+          }
+        });
+      }
+      //check door
+      if(checkIntersect(door, tracerObj)){
+        collides = true;
+      }
     }
-    return false;
+    return collides;
+  }
+  function moveTracerVertical(tracer, remainingSpace){
+    var firstFree = true;
+    var save = false;
+    var gap = {x: '', y: '', width: '', height: ''};
+    while(tracer.y < floor.height + floor.y){
+      spaceTaken = checkAllCollisions(tracer, false);
+      if(!spaceTaken){
+        if(firstFree){
+          //log start of gap
+          gap.x = tracer.x;
+          gap.y = tracer.y; 
+          firstFree = false;     
+        }else if(tracer.y + tracer.height === floor.y + floor.height){ //if hits end of walll
+          tracer.y += 50;
+          save = true;
+        }
+      }else{
+        if(!firstFree){
+          save = true;
+        }
+      }
+      if(save){
+        //log end of gap
+        gap.width = tracer.width;  
+        gap.height = tracer.y - gap.y;
+        if(tracer.x === 50){
+          gap.orientation = 'west';
+          remainingSpace.west.push(gap);
+        }else{
+          gap.orientation = 'east';
+          gap.x += 50; //accounts for anchor
+          remainingSpace.east.push(gap);
+        }
+        firstFree = true;
+        gap = {x: '', y: '', width: '', height: ''};
+        save = false;
+      }
+      tracer.y += 50;
+    }
+  }
+  function moveTracerHorizontal(tracer, remainingSpace){
+    var firstFree = true;
+    var save = false;
+    var gap = {x: '', y: '', width: '', height: ''};
+    while(tracer.x < floor.width + floor.x){
+      spaceTaken = checkAllCollisions(tracer, false);
+      if(!spaceTaken){
+        if(firstFree){
+          //log start of gap
+          gap.x = tracer.x;
+          gap.y = tracer.y; 
+          firstFree = false;     
+        }
+        if(tracer.x + tracer.width === floor.x + floor.width){ //if hits end of walll
+          tracer.x += 50;
+          save = true;
+        }
+      }else{
+        if(!firstFree){
+          save = true;
+        }
+      }
+      if(save){
+        //log end of gap
+        gap.width = tracer.x - gap.x;  
+        gap.height = tracer.height;
+        if(tracer.y === 50){
+          gap.orientation = 'north';
+          remainingSpace.north.push(gap);
+        }else{
+          gap.orientation = 'south';
+          gap.y +=50;//accounts for anchor
+          remainingSpace.south.push(gap);
+        }
+        firstFree = true;
+        gap = {x: '', y: '', width: '', height: ''};
+        save = false;
+      }
+      tracer.x += 50;
+    }
   }
 })
