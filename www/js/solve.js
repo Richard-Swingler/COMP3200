@@ -71,6 +71,12 @@ angular.module('solve.controllers', [])
     }
     //loads furniture onto floor 
     furnitures = JSON.parse(window.localStorage.getItem('furniture'));
+    //creating dummy data for test purposes
+    furnitures = {Bed: {name: 'Bed', recX: 300, recY: 150, type: 'Bed'},
+      Desk: {name: 'Desk', recX: 200, recY: 100, type: 'Desk'},
+      Wardrobe: {name: 'Wardrobe', recX: 250, recY: 100, type: 'Tall'},
+      ChestOfDraws: {name: 'ChestOfDraws', recX: 200, recY: 100, type: 'Normal'},
+    };
     restrictedFurn = solveEditor.add.group();
     otherFurn = solveEditor.add.group();
     for(var furniture in furnitures){
@@ -115,7 +121,8 @@ angular.module('solve.controllers', [])
     //loop through answers every second/3
     var time = 0;
     solveEditor.time.events.loop(Phaser.Timer.SECOND/2, function(){ 
-      if (time < 5){
+      time = 2;
+      if (time < 3){
         furnitures['Desk'].obj.x = $scope.solutions[time].desk.x;
         furnitures['Desk'].obj.y = $scope.solutions[time].desk.y;
         furnitures['Desk'].obj.height = $scope.solutions[time].desk.height;

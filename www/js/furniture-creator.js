@@ -11,16 +11,17 @@ angular.module('furniture-creator.controllers', [])
   };
   $scope.addItem = function(){
     $scope.new = true;
+    console.log($scope.furn['type']);
+    if($scope.furn['type'] === 'Bed' || $scope.furn['type'] === 'Desk'){
+      $scope.furn['name'] = $scope.furn['type'];
+    }
     $scope.createBlock($scope.furn['name']);
     $scope.closeModal();
-    console.log($scope.furn['type']);
     $scope.furnitures[$scope.furn['name']] = {name: $scope.furn['name'], recX: '', recY: '', type: $scope.furn['type']};
     $scope.furn = {};
     $ionicScrollDelegate.scrollBottom();
   };
   $scope.solve = function(){
-    featuresData = JSON.parse(window.localStorage.getItem('furniture'));
-    console.log(featuresData);
     window.open("#/solve");
   };
   $ionicModal.fromTemplateUrl('my-modal.html', {
@@ -101,12 +102,12 @@ angular.module('furniture-creator.controllers', [])
         box.inputEnabled = true;
         box.input.enableDrag();
         box.input.enableSnap(50, 50, false, true);
-        $scope.furnitures[name]['recX'] = recX;
-        $scope.furnitures[name]['recY'] = recY;
         console.log($scope.furnitures);
         create_button.on = false; 
         create_button.kill();
         save_button = furnEditor.add.button(furnEditor.world.width - 200, furnEditor.world.height -100, 'save_button', function(){
+          $scope.furnitures[name]['recX'] = recX;
+          $scope.furnitures[name]['recY'] = recY;
           save_button.visible = false;
           if (!save_button.visible){
             window.localStorage.setItem('furniture', JSON.stringify($scope.furnitures));
