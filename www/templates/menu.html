@@ -1,24 +1,31 @@
 <ion-side-menus enable-menu-with-back-views="false">
   <ion-side-menu-content>
     <ion-nav-bar class="bar-positive">
-      <ion-nav-back-button>
-      </ion-nav-back-button>
     </ion-nav-bar>
     <ion-nav-view name="menuContent"></ion-nav-view>
   </ion-side-menu-content>
 
   <ion-side-menu side="left" expose-aside-when="large">
-    <ion-header-bar class="bar-calm">
-      <h1 class="title">Furnitures</h1>
-    </ion-header-bar>
-    <ion-content>
+    <ion-nav-bar class="bar-calm">
+      <ion-nav-title>
+        <h1 class='title'>Furnitures</h1>
+      </ion-nav-title>
+      <ion-nav-buttons side="right">
+        <button class="button button-outline button-light" ng-click="solve(furnitures)">
+          Solve!
+        </button>
+      </ion-nav-buttons>
+    </ion-nav-bar>
+    <ion-nav-view>
       <ion-list>
+        <br><br><br>
         <ion-item ng-repeat="furniture in furnitures" ng-value="furniture.name">{{ furniture.name }}</ion-item>
         <ion-item ng-click='openModal();'>
           <i class="icon ion-plus-round"></i>   Add item
+
         </ion-item>
       </ion-list>
-    </ion-content>
+    </ion-nav-view>
   </ion-side-menu>
 </ion-side-menus>
 

@@ -3,17 +3,21 @@ angular.module('furniture-creator.controllers', [])
 .controller('FurnitureCtrl', function($scope, $ionicModal, $ionicScrollDelegate) {
   $scope.furnitures = {};
   $scope.furn = {};
+  $scope.new = false;
+
   $scope.addItem = function(){
+    $scope.new = false;
     if($scope.furn['type'] === 'Bed' || $scope.furn['type'] === 'Desk'){
       $scope.furn['name'] = $scope.furn['type'];
     }
-    $scope.log = $scope.createBlock($scope.furn['name']);
+    $scope.createBlock($scope.furn['name']);
     $scope.closeModal();
     $scope.furnitures[$scope.furn['name']] = {name: $scope.furn['name'], recX: '', recY: '', type: $scope.furn['type']};
     $scope.furn = {};
     $ionicScrollDelegate.scrollBottom();
   };
   $scope.solve = function(){
+    console.log($scope.furnitures);
     //window.open("#/solve");
   };
   $ionicModal.fromTemplateUrl('my-modal.html', {
@@ -23,6 +27,7 @@ angular.module('furniture-creator.controllers', [])
     $scope.modal = modal;
   });
   $scope.openModal = function() {
+    $scope.new = true;
     $scope.modal.show();
   };
   $scope.closeModal = function() {
@@ -97,10 +102,16 @@ angular.module('furniture-creator.controllers', [])
         create_button.kill();
         $scope.furnitures[name]['recX'] = recX;
         $scope.furnitures[name]['recY'] = recY;
-        //window.localStorage.setItem('furniture', JSON.stringify($scope.furnitures));
+        $scope.closeModal(); //prompts the angular side of the application to refresh and receive the updated values
+        // window.localStorage.setItem('furniture', JSON.stringify($scope.furnitures));
         // furnEditor = '';
-        // furnEditor.destroy();
+        //furnEditor.destroy();
       }
+        console.log($scope.new);
+        if($scope.new){
+          $scope.new = false;
+          alert('yoyoyo');
+        }
     }
     function render(){
       furnEditor.debug.geom(shadow,'#ff4c4c');
@@ -113,4 +124,3 @@ angular.module('furniture-creator.controllers', [])
     }
   }; 
 });
-

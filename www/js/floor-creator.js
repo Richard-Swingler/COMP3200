@@ -4,7 +4,6 @@ angular.module('floor-creator.controllers', [])
   // Triggered on a button click, or some other target
   $scope.showPopup = function() {
     $scope.data = {}; //creates scope variable for form submition
-
     // Custom pop up to prompt user for length of window
     var myPopup = $ionicPopup.show({
       template: '<input type="number" placeholder="Metres" ng-model="data.window">', 
