@@ -3,7 +3,7 @@ angular.module('solve.controllers', [])
 .controller('SolveCtrl', function($scope) {
   
   var solveEditor = new Phaser.Game(1024, 705, Phaser.AUTO, 'solveCanvas', { preload: preload, create: create, update:update, render:render}, false);
-  var floor, furnitures, logo, restrictedFurn, features, door, plug, plugWall, otherFurn,glass; //initialise global variables [TODO] Replace by this. when eventually using states
+  var floor, furnitures, logo, restrictedFurn, features, door, plug, plugWall, otherFurn, glass; //initialise global variables [TODO] Replace by this. when eventually using states
   var side, placeDeskCount = 0;
   var placeDesk = true;
   var cancel = false;
@@ -12,10 +12,12 @@ angular.module('solve.controllers', [])
   function preload(){
       solveEditor.load.image('logo', 'img/ionic.png');
       solveEditor.load.image('grid', 'img/grid.png');
+      solveEditor.load.image('full_grid', 'img/full_grid.png');
       solveEditor.load.image('door', 'img/door_floorplan.png');
       solveEditor.load.image('plug', 'img/plug_floorplan.png');
       solveEditor.load.image('window', 'img/window_floorplan.png');
       solveEditor.load.image('button', 'img/save.png');
+      solveEditor.load.image('floor_fabric', 'img/fabricTile.jpg');
   }
   function create(){
     //scaling options
@@ -25,13 +27,13 @@ angular.module('solve.controllers', [])
     this.scale.pageAlignHorizontally = true;
     this.scale.pageAlignVertically = true;
     solveEditor.stage.backgroundColor = '#ffffff'; 
-    solveEditor.add.tileSprite(0, 0, 1024, 705, "grid"); 
+    solveEditor.add.tileSprite(0, 0, 1024, 705, "full_grid"); 
 
     floor = JSON.parse(window.localStorage.getItem("floor"));
     var floorBmd = createBmd(floor);
     floorBmd.ctx.fillStyle = '#ffffff';
     floorBmd.ctx.fill();
-    floor = solveEditor.add.sprite(50, 50, floorBmd);
+    floor = solveEditor.add.tileSprite(50, 50, floor['recX'], floor['recY'], 'floor_fabric');
     //solveEditor.physics.enable(floor, Phaser.Physics.ARCADE);
 
     //loads features onto floor
@@ -114,15 +116,15 @@ angular.module('solve.controllers', [])
       console.log('~~~~~~~~~~~');
       generateUserSolutions(furnitures, features);
     }
+    console.log($scope.solutions);
     //sort solutions by biggest useable area
     $scope.solutions.sort(solutionSort);
     //store in local storage
-    window.localStorage.setItem('Solutions', JSON.stringify($scope.solutions));
-    //loop through answers every second/3
+    //window.localStorage.setItem('Solutions', JSON.stringify($scope.solutions));
+    // /loop through answers every second/3
     var time = 0;
-    solveEditor.time.events.loop(Phaser.Timer.SECOND/2, function(){ 
-      time = 2;
-      if (time < 3){
+    solveEditor.time.events.loop(Phaser.Timer.SECOND/5, function(){ 
+      if (time < $scope.solutions.length){
         furnitures['Desk'].obj.x = $scope.solutions[time].desk.x;
         furnitures['Desk'].obj.y = $scope.solutions[time].desk.y;
         furnitures['Desk'].obj.height = $scope.solutions[time].desk.height;
@@ -147,9 +149,6 @@ angular.module('solve.controllers', [])
       }
     }, this); 
     
-  }
-  function populateButton(saved){
-
   }
   function solutionSort(a,b) {
     if (a.useable > b.useable)

@@ -13,9 +13,9 @@
     </ion-header-bar>
     <ion-content>
       <ion-list>
-        <ion-item ng-repeat="furniture in furnitures" ng-value="furniture.name" ng-click="checkRadio(furniture.name)">{{furniture.name}}</ion-item>
+        <ion-item ng-repeat="furniture in furnitures" ng-value="furniture.name">{{ furniture }}</ion-item>
         <ion-item ng-click='openModal();'>
-          Add item
+          <i class="icon ion-plus-round"></i>   Add item
         </ion-item>
       </ion-list>
     </ion-content>
@@ -23,7 +23,7 @@
 </ion-side-menus>
 
 <script id="my-modal.html" type="text/ng-template">
-  <ion-modal-view>
+  <ion-modal-view style="height: 300px;">
     <ion-header-bar>
       <h1 class="title">New Furniture</h1>
       <div class="buttons">
@@ -43,15 +43,13 @@
           <div class="item item-divider"> 
             Furniture Type/Flag
           </div>      
-          <label class="item item-radio">
-            <ion-radio ng-model="furn.type" ng-value="'Normal'">Normal</ion-radio>
-            <ion-radio ng-model="furn.type" ng-value="'Desk'">Desk</ion-radio>
-            <ion-radio ng-model="furn.type" ng-value="'Bed'">Bed</ion-radio>
-            <ion-radio ng-model="furn.type" ng-value="'Tall'">Tall</ion-radio>
+          <label class="row">
+            <ion-radio class='col col-25' ng-model="furn.type" ng-value="'Normal'">Normal</ion-radio>
+            <ion-radio class='col col-25' ng-model="furn.type" ng-value="'Desk'">Desk</ion-radio>
+            <ion-radio class='col col-25' ng-model="furn.type" ng-value="'Bed'">Bed</ion-radio>
+            <ion-radio class='col col-25' ng-model="furn.type" ng-value="'Tall'">Tall</ion-radio>
           </label>
-          <label class="item">
-            <button class="button button-block button-balanced" type="submit">Create!</button>
-          </label>
+          <button class="button button-block button-balanced" type="submit">Create!</button>
         </div>
       </form>
     </ion-content>

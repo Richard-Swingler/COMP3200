@@ -3,25 +3,20 @@ angular.module('furniture-creator.controllers', [])
 .controller('FurnitureCtrl', function($scope, $ionicModal, $ionicScrollDelegate) {
   $scope.furnitures = {};
   $scope.furn = {};
-  $scope.choice = null;
-
-  $scope.checkRadio = function(selected){
-    //console.log();
-    console.log(selected);
-  };
   $scope.addItem = function(){
     $scope.new = true;
     console.log($scope.furn['type']);
     if($scope.furn['type'] === 'Bed' || $scope.furn['type'] === 'Desk'){
       $scope.furn['name'] = $scope.furn['type'];
     }
-    $scope.createBlock($scope.furn['name']);
+    $scope.log = $scope.createBlock($scope.furn['name']);
     $scope.closeModal();
     $scope.furnitures[$scope.furn['name']] = {name: $scope.furn['name'], recX: '', recY: '', type: $scope.furn['type']};
     $scope.furn = {};
     $ionicScrollDelegate.scrollBottom();
   };
   $scope.solve = function(){
+    console.log($scope.log);
     window.open("#/solve");
   };
   $ionicModal.fromTemplateUrl('my-modal.html', {
@@ -37,7 +32,7 @@ angular.module('furniture-creator.controllers', [])
     $scope.modal.hide();
   };  
 
-  $scope.createBlock = function(name){
+  $scope.createBlock = function(name, saveTo){
     var furnEditor = new Phaser.Game(800, 705, Phaser.AUTO, 'furnCanvas', { preload: preload, create: create, update:update, render:render}, false);
     var logo, bottom_left, create_button, box, bmd, shadow, recX, recY, orX, orY, save_button; //initialise global variables [TODO] Replace by this. when eventually using states
     function preload(){
@@ -45,6 +40,7 @@ angular.module('furniture-creator.controllers', [])
         furnEditor.load.image('grid', 'img/grid.png');
         furnEditor.load.image('create_button', 'img/create_box.png');
         furnEditor.load.image('save_button', 'img/save.png');
+        furnEditor.load.image('full_grid', 'img/full_grid.png');
     }
     function create(){
         //scaling options
@@ -53,7 +49,7 @@ angular.module('furniture-creator.controllers', [])
         this.scale.pageAlignHorizontally = true;
         this.scale.pageAlignVertically = true;
         furnEditor.stage.backgroundColor = '#ffffff'; 
-        furnEditor.add.tileSprite(0, 0, 1024, 705, "grid"); 
+        furnEditor.add.tileSprite(0, 0, 1024, 705, "full_grid"); 
         create_button = furnEditor.add.button(furnEditor.world.width - 200, furnEditor.world.height -100, 'create_button', createButton, this, 2, 1, 0);
         create_button.on = false;
         function createButton(){
@@ -105,15 +101,12 @@ angular.module('furniture-creator.controllers', [])
         console.log($scope.furnitures);
         create_button.on = false; 
         create_button.kill();
-        save_button = furnEditor.add.button(furnEditor.world.width - 200, furnEditor.world.height -100, 'save_button', function(){
-          $scope.furnitures[name]['recX'] = recX;
-          $scope.furnitures[name]['recY'] = recY;
-          save_button.visible = false;
-          if (!save_button.visible){
-            window.localStorage.setItem('furniture', JSON.stringify($scope.furnitures));
-            furnEditor.destroy();
-          }
-        }, this, 2, 1, 0);
+        $scope.furnitures[name]['recX'] = recX;
+        $scope.furnitures[name]['recY'] = recY;
+            //window.localStorage.setItem('furniture', JSON.stringify($scope.furnitures));
+            // furnEditor = '';
+            // furnEditor.destroy();
+
       }
     }
     function render(){

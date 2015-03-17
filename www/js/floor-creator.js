@@ -41,6 +41,12 @@ angular.module('floor-creator.controllers', [])
     editor.load.image('door', 'img/door.png');
     editor.load.image('window', 'img/window.png');
     editor.load.image('plug', 'img/plug.png');
+    editor.load.image('full_grid', 'img/full_grid.png');
+    editor.load.image('banner', 'img/banner.png');
+    editor.load.image('door_tile', 'img/door_floorplan.png');
+    editor.load.image('plug_tile', 'img/plug_floorplan.png');
+    editor.load.image('window_tile', 'img/window_floorplan.png');
+    editor.load.image('floor_fabric', 'img/fabricTile.jpg');
   }
   function create(){
     //scaling options
@@ -49,7 +55,7 @@ angular.module('floor-creator.controllers', [])
     this.scale.pageAlignHorizontally = true;
     this.scale.pageAlignVertically = true;
     editor.stage.backgroundColor = '#ffffff'; 
-    grid = editor.add.tileSprite(0, 0, 1024, 705, "grid"); 
+    grid = editor.add.tileSprite(0, 0, 1024, 705, "full_grid"); 
     create_button = editor.add.button(editor.world.width - 200, editor.world.height - 100, 'create_button', createButton, this, 2, 1, 0);
     create_button.on = false;
     function createButton(){
@@ -60,13 +66,7 @@ angular.module('floor-creator.controllers', [])
         create_button.loadTexture('create_button', 0, false);
       }
     }
-    logo = editor.add.sprite(0, 0, 'logo');
-    editor.physics.enable(logo, Phaser.Physics.ARCADE);
     createCarousel();
-    logo.body.collideWorldBounds = true;
-    logo.body.bounce.setTo(1, 1);
-    logo.inputEnabled = true;
-    logo.input.enableDrag();
   }
   function update(){
     rotateFeature(plug);
@@ -95,49 +95,36 @@ angular.module('floor-creator.controllers', [])
       recY = round(recY);
       orX = round(orX);
       orY = round(orY);
-      bmd = editor.add.bitmapData(recX,recY);
-      // setup bitmap colour
-      bmd.ctx.beginPath();
-      bmd.ctx.rect(0,0,recX,recY);
-      bmd.ctx.fillStyle = '#ffffff';
-      bmd.ctx.fill(); 
       //creates floor sprite from shadow
       shadow = null; //removes shadow
-      floor = editor.add.sprite(orX, orY, bmd);
+      floor = editor.add.tileSprite(orX, orY,recX,recY, 'floor_fabric');
+      floor.alpha = 0.8;
       floor.inputEnabled = true;
       floor.input.enableDrag();
       floor.input.enableSnap(50, 50, false, true);
       create_button.on = false; 
       create_button.kill();
 
-      next_button = editor.add.button(editor.world.width - 200, editor.world.height -100, 'save_button', function(){
-        window.localStorage.setItem("floor", JSON.stringify({orX: orX, orY: orY, recX: recX, recY: recY}));
-        floorPlan = editor.add.group();
-        floor.x = 100;
-        floor.y = 50;
-        floor.inputEnabled = false;
-        next_button.visible = false;
-        carousel.visible = true;
-        noDropBmd = editor.add.bitmapData(floor.width, floor.height);
-        // setup bitmap colour
-        noDropBmd.ctx.beginPath();
-        noDropBmd.ctx.rect(0,0,floor.width - 100, floor.height - 100);
-        noDropBmd.ctx.fillStyle = '#ffffff';
-        noDropBmd.ctx.fill(); 
-        noDrop = editor.add.sprite(floor.x +50, floor.y +50, noDropBmd);
-        editor.world.sendToBack(noDrop);
-        editor.world.sendToBack(floor);
-        editor.world.sendToBack(grid);
-        save_button = editor.add.button(editor.world.width - 200, editor.world.height -100, 'save_button', function(){
-          var features = {};
-          floorPlan.forEach(function(item) {
-              features[item.name] = {name: item.name, x: item.x, y: item.y, width: item.width, height: item.height, type: item.type};
-          }, this);
-          console.log(features);
-          window.localStorage.setItem('features', JSON.stringify(features));
-          console.log('saved!!');
-          window.open("#/app/furniture");
-        }, this, 2, 1, 0);
+      window.localStorage.setItem("floor", JSON.stringify({orX: orX, orY: orY, recX: recX, recY: recY}));
+      floorPlan = editor.add.group();
+      floor.x = 100;
+      floor.y = 50;
+      floor.inputEnabled = false;
+      //next_button.visible = false;
+      carousel.visible = true;
+      noDrop = editor.add.tileSprite(floor.x +50, floor.y +50,floor.width - 100,floor.height - 100, 'floor_fabric');
+      editor.world.sendToBack(noDrop);
+      editor.world.sendToBack(floor);
+      editor.world.sendToBack(grid);
+      save_button = editor.add.button(editor.world.width - 200, editor.world.height -100, 'save_button', function(){
+        var features = {};
+        floorPlan.forEach(function(item) {
+            features[item.name] = {name: item.name, x: item.x, y: item.y, width: item.width, height: item.height, type: item.type};
+        }, this);
+        console.log(features);
+        window.localStorage.setItem('features', JSON.stringify(features));
+        console.log('saved!!');
+        window.open("#/app/furniture");
       }, this, 2, 1, 0);
     }
   }
@@ -152,25 +139,24 @@ angular.module('floor-creator.controllers', [])
   }
   function createCarousel(){
     carousel = editor.add.group();
-    carouselBmd = editor.add.bitmapData(editor.width, 150);
-    // setup bitmap colour
-    carouselBmd.ctx.beginPath();
-    carouselBmd.ctx.rect(0,0, editor.width, 150);
-    carouselBmd.ctx.fillStyle = '#ffffff';
-    carouselBmd.ctx.fill(); 
-    carouselBg = carousel.create(0,editor.height - 150, carouselBmd);
+
+    var banner = editor.add.tileSprite(0, editor.height - 150, editor.width, 150, 'banner');
+    carouselBg = carousel.add(banner);
+
     doorShadow = carousel.create(250, editor.height - 150, 'door');
     doorShadow.height = 150;
     doorShadow.width = 150;
     doorShadow.alpha = 0.2;
+
     door = carousel.create(250, editor.height - 150, 'door');
     door.height = 150;
     door.width = 150;
     door.inputEnabled = true;
     door.input.enableDrag();
     door.input.enableSnap(50, 50, true, true);
-    door.events.onInputDown.add(dragDoor, this);
+    door.events.onInputDown.add(dragObj, this);
     door.events.onDragStop.add(dropDoor, this);
+
     windows = editor.add.button(425, editor.height - 150, 'window', function(){
       if(windows.alpha !== 0.2){
         $scope.showPopup();
@@ -193,18 +179,19 @@ angular.module('floor-creator.controllers', [])
     plug.events.onDragStop.add(dropPlug, this);
     carousel.visible = false;
   }
-  function dragDoor(sprite, pointer){
+  function dragObj(sprite, pointer, width, height, type){
+    console.log(width);
     noDrop.visible = true;
     console.log(sprite.x);
     floor.tint = 0x00ff00;
-    door.loadTexture('grid', 0, false);
+    door.loadTexture('door_tile', 0, false);
     door.height = 100;
     door.width = 100;
   }
   function dragPlug(sprite, pointer){
     noDrop.visible = true;
     floor.tint = 0x00ff00;
-    plug.loadTexture('grid', 0, false);
+    plug.loadTexture('plug_tile', 0, false);
     plug.height = 50;
     plug.width = 200;
   }
@@ -258,14 +245,13 @@ angular.module('floor-creator.controllers', [])
     }
   }
   addWindow = function(){
-    //the window will in fact be more of a window arearea, where furniture with certain flags cannot be placed
-    var bmd = editor.add.bitmapData(50 , round($scope.data.window * 100)); //converts metres into px according to grid and rounds to nearest 50 px block
-    bmd.ctx.beginPath();
-    bmd.ctx.rect(0 , 0, 50 , round($scope.data.window * 100)); //converts metres into px according to grid and rounds to nearest 50 px block
-    bmd.ctx.fillStyle = '#00EEEE';
-    bmd.ctx.fill(); 
-    glass = editor.add.sprite(floor.x, floor.y, bmd);  
-    glass.bringToTop();
+    //the window will in fact be more of a window area, where furniture with certain flags cannot be placed
+    // var bmd = editor.add.bitmapData(50 , round($scope.data.window * 100)); //converts metres into px according to grid and rounds to nearest 50 px block
+    // bmd.ctx.beginPath();
+    // bmd.ctx.rect(0 , 0, 50 , round($scope.data.window * 100)); //converts metres into px according to grid and rounds to nearest 50 px block
+    // bmd.ctx.fillStyle = '#00EEEE';
+    // bmd.ctx.fill(); 
+    glass = editor.add.tileSprite(floor.x, floor.y, 50 , round($scope.data.window * 100), 'window_tile');  
     glass.inputEnabled = true;
     glass.input.enableDrag();
     glass.input.enableSnap(50, 50, true, true);
