@@ -251,7 +251,7 @@ angular.module('floor-creator.controllers', [])
     // bmd.ctx.rect(0 , 0, 50 , round($scope.data.window * 100)); //converts metres into px according to grid and rounds to nearest 50 px block
     // bmd.ctx.fillStyle = '#00EEEE';
     // bmd.ctx.fill(); 
-    glass = editor.add.tileSprite(floor.x, floor.y, 50 , round($scope.data.window * 100), 'window_tile');  
+    glass = editor.add.tileSprite(floor.x, floor.y +50, 50 , round($scope.data.window * 100), 'window_tile');  
     glass.inputEnabled = true;
     glass.input.enableDrag();
     glass.input.enableSnap(50, 50, true, true);

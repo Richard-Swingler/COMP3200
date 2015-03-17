@@ -13,7 +13,7 @@
     </ion-header-bar>
     <ion-content>
       <ion-list>
-        <ion-item ng-repeat="furniture in furnitures" ng-value="furniture.name">{{ furniture }}</ion-item>
+        <ion-item ng-repeat="furniture in furnitures" ng-value="furniture.name">{{ furniture.name }}</ion-item>
         <ion-item ng-click='openModal();'>
           <i class="icon ion-plus-round"></i>   Add item
         </ion-item>
