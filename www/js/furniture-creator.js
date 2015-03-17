@@ -4,8 +4,6 @@ angular.module('furniture-creator.controllers', [])
   $scope.furnitures = {};
   $scope.furn = {};
   $scope.addItem = function(){
-    $scope.new = true;
-    console.log($scope.furn['type']);
     if($scope.furn['type'] === 'Bed' || $scope.furn['type'] === 'Desk'){
       $scope.furn['name'] = $scope.furn['type'];
     }
@@ -16,8 +14,7 @@ angular.module('furniture-creator.controllers', [])
     $ionicScrollDelegate.scrollBottom();
   };
   $scope.solve = function(){
-    console.log($scope.log);
-    window.open("#/solve");
+    //window.open("#/solve");
   };
   $ionicModal.fromTemplateUrl('my-modal.html', {
     scope: $scope,
@@ -31,12 +28,10 @@ angular.module('furniture-creator.controllers', [])
   $scope.closeModal = function() {
     $scope.modal.hide();
   };  
-
   $scope.createBlock = function(name, saveTo){
     var furnEditor = new Phaser.Game(800, 705, Phaser.AUTO, 'furnCanvas', { preload: preload, create: create, update:update, render:render}, false);
     var logo, bottom_left, create_button, box, bmd, shadow, recX, recY, orX, orY, save_button; //initialise global variables [TODO] Replace by this. when eventually using states
     function preload(){
-        var hi = JSON.parse(window.localStorage.getItem("floor"));
         furnEditor.load.image('grid', 'img/grid.png');
         furnEditor.load.image('create_button', 'img/create_box.png');
         furnEditor.load.image('save_button', 'img/save.png');
@@ -98,15 +93,13 @@ angular.module('furniture-creator.controllers', [])
         box.inputEnabled = true;
         box.input.enableDrag();
         box.input.enableSnap(50, 50, false, true);
-        console.log($scope.furnitures);
         create_button.on = false; 
         create_button.kill();
         $scope.furnitures[name]['recX'] = recX;
         $scope.furnitures[name]['recY'] = recY;
-            //window.localStorage.setItem('furniture', JSON.stringify($scope.furnitures));
-            // furnEditor = '';
-            // furnEditor.destroy();
-
+        //window.localStorage.setItem('furniture', JSON.stringify($scope.furnitures));
+        // furnEditor = '';
+        // furnEditor.destroy();
       }
     }
     function render(){
@@ -118,7 +111,6 @@ angular.module('furniture-creator.controllers', [])
     function round(x){
       return Math.round(x /50)*50;
     }
-    
   }; 
 });
 

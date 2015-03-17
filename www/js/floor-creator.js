@@ -82,12 +82,10 @@ angular.module('floor-creator.controllers', [])
       }
     } else if (create_button.on && editor.input.activePointer.justReleased(40) && !isNaN(recX)){
       if(isNegative(recX)){
-        console.log(recX);
         [recX, orX] = [orX, recX];
         orX = Math.abs(orX);
       }
       if(isNegative(recY)){
-        console.log(recY);
         [recY, orY] = [orY, recY];
         orY = Math.abs(orY);
       }
@@ -121,7 +119,6 @@ angular.module('floor-creator.controllers', [])
         floorPlan.forEach(function(item) {
             features[item.name] = {name: item.name, x: item.x, y: item.y, width: item.width, height: item.height, type: item.type};
         }, this);
-        console.log(features);
         window.localStorage.setItem('features', JSON.stringify(features));
         console.log('saved!!');
         window.open("#/app/furniture");
@@ -179,8 +176,7 @@ angular.module('floor-creator.controllers', [])
     plug.events.onDragStop.add(dropPlug, this);
     carousel.visible = false;
   }
-  function dragObj(sprite, pointer, width, height, type){
-    console.log(width);
+  function dragObj(sprite, pointer){
     noDrop.visible = true;
     console.log(sprite.x);
     floor.tint = 0x00ff00;
@@ -246,12 +242,7 @@ angular.module('floor-creator.controllers', [])
   }
   addWindow = function(){
     //the window will in fact be more of a window area, where furniture with certain flags cannot be placed
-    // var bmd = editor.add.bitmapData(50 , round($scope.data.window * 100)); //converts metres into px according to grid and rounds to nearest 50 px block
-    // bmd.ctx.beginPath();
-    // bmd.ctx.rect(0 , 0, 50 , round($scope.data.window * 100)); //converts metres into px according to grid and rounds to nearest 50 px block
-    // bmd.ctx.fillStyle = '#00EEEE';
-    // bmd.ctx.fill(); 
-    glass = editor.add.tileSprite(floor.x, floor.y +50, 50 , round($scope.data.window * 100), 'window_tile');  
+    glass = editor.add.tileSprite(floor.x, floor.y +50, 50 , round($scope.data.window * 100), 'window_tile');  //converts metres into px according to grid and rounds to nearest 50 px block
     glass.inputEnabled = true;
     glass.input.enableDrag();
     glass.input.enableSnap(50, 50, true, true);
@@ -261,7 +252,6 @@ angular.module('floor-creator.controllers', [])
     windows.alpha = 0.2;
   }
   function onWall(floor, feature){
-    console.log(checkOverlap(feature, floor));
     return checkOverlap(feature, floor) && checkOverlap(feature, noDrop) && checkNorth(floor, feature) || checkSouth(floor, feature) || checkWest(floor, feature) || checkEast(floor, feature);
   }
   function checkNorth(floor, feature){
