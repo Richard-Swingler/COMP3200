@@ -6,7 +6,7 @@ angular.module('furniture-creator.controllers', [])
   $scope.new = false;
   $scope.solve = function(){
     window.localStorage.setItem('furniture', JSON.stringify($scope.furnitures));
-    window.open("#/solve");
+    window.open("#/solve/solution");
   };
   var furnEditor = new Phaser.Game(800, 705, Phaser.AUTO, 'furnCanvas', { preload: preload, create: create, update:update, render:render}, false);
   var logo, bottom_left, create_button, box, bmd, shadow, recX, recY, orX, orY, save_button, name; //initialise global variables [TODO] Replace by this. when eventually using states
@@ -61,7 +61,6 @@ angular.module('furniture-creator.controllers', [])
       bmd.ctx.fill(); 
       //creates box sprite from shadow
       shadow = null;
-
       box = furnEditor.add.sprite(orX, orY, bmd);
       box.inputEnabled = true;
       box.input.enableDrag();
@@ -69,8 +68,6 @@ angular.module('furniture-creator.controllers', [])
       $scope.furnitures[name]['recX'] = recX;
       $scope.furnitures[name]['recY'] = recY;
       $scope.new = false;
-      
-
     }
   }
   function render(){
@@ -129,8 +126,6 @@ angular.module('furniture-creator.controllers', [])
     }
   };
   $scope.remove = function(itemName){
-    console.log($scope.furnitures[itemName]);
     delete $scope.furnitures[itemName];
-    // /console.log($scope.furnitures);
   }
 });

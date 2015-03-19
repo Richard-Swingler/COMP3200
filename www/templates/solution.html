@@ -1,0 +1,24 @@
+<ion-side-menus enable-menu-with-back-views="false">
+  <ion-side-menu-content>
+    <ion-nav-bar class="bar-positive">
+    </ion-nav-bar>
+    <ion-nav-view name="menuContent"></ion-nav-view>
+  </ion-side-menu-content>
+
+  <ion-side-menu side="left" expose-aside-when="large">
+    <ion-nav-bar class="bar-calm">
+      <ion-nav-title>
+        <h1 class='title'>Solutions</h1>
+      </ion-nav-title>
+    </ion-nav-bar>
+    <ion-nav-view>
+      <ion-list show-delete="shouldShowDelete">
+        <br><br><br>
+        <ion-item ng-repeat="solution in solutions | limitTo: 5" ng-click="showSolution(solution)">
+          <button style='padding: 0; margin:0 10px 0 0;' class="icon ion-trash-a assertive button-icon" ng-click="removeSolution(solution)"></button> 
+          {{ solution.count }}
+        </ion-item>
+      </ion-list>
+    </ion-nav-view>
+  </ion-side-menu>
+</ion-side-menus>

@@ -28,6 +28,12 @@ angular.module('starter', ['ionic', 'floor-creator.controllers', 'furniture-crea
     templateUrl: "templates/menu.html",
     controller: 'FurnitureCtrl'
   })
+  .state('solve', {
+    url: "/solve",
+    abstract: true,
+    templateUrl: "templates/solution.html",
+    controller: 'SolveCtrl'
+  })
   .state('floor', {
       url: "/floor",
       templateUrl: "templates/floor-creator.html",
@@ -42,10 +48,13 @@ angular.module('starter', ['ionic', 'floor-creator.controllers', 'furniture-crea
       }
     }
   })
-  .state('solve', {
-      url: "/solve",
-      templateUrl: "templates/solve.html",
-      controller: 'SolveCtrl'
+  .state('solve.solution', {
+      url: "/solution",
+      views: {
+      'menuContent': {
+        templateUrl: "templates/solve.html",
+      }
+    }
   });
   //[TODO] get item by id -> good for viewing results/items
   // .state('app.single', {

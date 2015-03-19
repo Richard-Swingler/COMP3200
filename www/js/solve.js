@@ -10,7 +10,6 @@ angular.module('solve.controllers', [])
   $scope.solutions  = [];
   remainingFurnitureData = [];
   function preload(){
-      solveEditor.load.image('logo', 'img/ionic.png');
       solveEditor.load.image('grid', 'img/grid.png');
       solveEditor.load.image('full_grid', 'img/full_grid.png');
       solveEditor.load.image('door', 'img/door_floorplan.png');
@@ -105,9 +104,6 @@ angular.module('solve.controllers', [])
         //sort array by largest flat side (furniture will be flipped to align with wall)
         remainingFurnitureData.sort(compare);
     }
-    logo = solveEditor.add.sprite(0,0,'logo');
-    logo.inputEnabled = true;
-    logo.input.enableDrag();
     for(side = 0; side < 8; side ++){
       console.log('~~Attepmt~~');
       console.log(side);
@@ -116,36 +112,38 @@ angular.module('solve.controllers', [])
     }
     //sort solutions by biggest useable area
     $scope.solutions.sort(solutionSort);
+    console.log('yoyoyoyo');
+
+    for(var t = 0; t < $scope.solutions.length; t++){
+      $scope.solutions[t].count = t + 1;
+      console.log($scope.solutions[t]);
+    }
     //store in local storage
     window.localStorage.setItem('Solutions', JSON.stringify($scope.solutions));
-    // /loop through answers every second/3
-    var time = 0;
-    solveEditor.time.events.loop(Phaser.Timer.SECOND/2, function(){ 
-      if (time < 3){
-        furnitures['Desk'].obj.x = $scope.solutions[time].desk.x;
-        furnitures['Desk'].obj.y = $scope.solutions[time].desk.y;
-        furnitures['Desk'].obj.height = $scope.solutions[time].desk.height;
-        furnitures['Desk'].obj.width = $scope.solutions[time].desk.width;
-        furnitures['Bed'].obj.x = $scope.solutions[time].bed.x;
-        furnitures['Bed'].obj.y = $scope.solutions[time].bed.y;
-        furnitures['Bed'].obj.height = $scope.solutions[time].bed.height;
-        furnitures['Bed'].obj.width = $scope.solutions[time].bed.width;
-        otherFurn.forEach(function(furn){
-           $scope.solutions[time].other.forEach(function(saved){
-            if(saved.name === furn.name){
-              furn.x = saved.x;
-              furn.y = saved.y;
-              furn.height = saved.height;
-              furn.width = saved.width;
-            }
-           });
-        });
-        time++;
-      }else{
-        time = 0;
-      }
-    }, this); 
     
+  }
+  $scope.showSolution = function(solution){
+    furnitures['Desk'].obj.x = solution.desk.x;
+    furnitures['Desk'].obj.y = solution.desk.y;
+    furnitures['Desk'].obj.height = solution.desk.height;
+    furnitures['Desk'].obj.width = solution.desk.width;
+    furnitures['Bed'].obj.x = solution.bed.x;
+    furnitures['Bed'].obj.y = solution.bed.y;
+    furnitures['Bed'].obj.height = solution.bed.height;
+    furnitures['Bed'].obj.width = solution.bed.width;
+    otherFurn.forEach(function(furn){
+       solution.other.forEach(function(saved){
+        if(saved.name === furn.name){
+          furn.x = saved.x;
+          furn.y = saved.y;
+          furn.height = saved.height;
+          furn.width = saved.width;
+        }
+       });
+    });
+  }
+  $scope.removeSolution = function(solution){
+    $scope.solutions.splice($scope.solutions.indexOf(solution), 1);
   }
   function solutionSort(a,b) {
     if (a.useable > b.useable)
