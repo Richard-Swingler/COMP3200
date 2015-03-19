@@ -1,0 +1,16 @@
+<form ng-submit="addItem()">
+  <div class="list">
+    <div class="item item-divider"> 
+      Furniture Name
+    </div>  
+    <input type="text" ng-model="furn.name" placeholder='e.g. Wardrobe'>
+    <div class="item item-divider"> 
+      Furniture Type/Flag
+    </div>      
+    <ion-radio ng-model="furn.type" ng-value="'Normal'">Normal</ion-radio>
+    <ion-radio ng-model="furn.type" ng-value="'Desk'">Desk</ion-radio>
+    <ion-radio ng-model="furn.type" ng-value="'Bed'">Bed</ion-radio>
+    <ion-radio ng-model="furn.type" ng-value="'Tall'">Tall</ion-radio>
+
+  </div>
+</form>

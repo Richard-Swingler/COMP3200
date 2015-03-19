@@ -17,48 +17,13 @@
       </ion-nav-buttons>
     </ion-nav-bar>
     <ion-nav-view>
-      <ion-list>
+      <ion-list show-delete="shouldShowDelete">
         <br><br><br>
-        <ion-item ng-repeat="furniture in furnitures" ng-value="furniture.name">{{ furniture.name }}</ion-item>
-        <ion-item ng-click='openModal();'>
+        <ion-item ng-repeat="furniture in furnitures" ng-click="serverSideChange(furniture)" ng-value="furniture.name"><button class="icon ion-trash-a button button-icon" ng-click="remove(furniture.name)"></button>  {{ furniture.name }}</ion-item>
+        <ion-item ng-click='showPopup();'>
           <i class="icon ion-plus-round"></i>   Add item
-
         </ion-item>
       </ion-list>
     </ion-nav-view>
   </ion-side-menu>
 </ion-side-menus>
-
-<script id="my-modal.html" type="text/ng-template">
-  <ion-modal-view style="height: 300px;">
-    <ion-header-bar>
-      <h1 class="title">New Furniture</h1>
-      <div class="buttons">
-        <button class="button button-clear" ng-click="closeModal()">Close</button>
-      </div>
-    </ion-header-bar>
-    <ion-content>
-      <form ng-submit="addItem()">
-        <div class="list">
-          <div class="item item-divider"> 
-            Furniture Info
-          </div>  
-          <label class="item item-input">
-            <span class="input-label">Furniture Name</span>
-            <input type="text" ng-model="furn.name">
-          </label>
-          <div class="item item-divider"> 
-            Furniture Type/Flag
-          </div>      
-          <label class="row">
-            <ion-radio class='col col-25' ng-model="furn.type" ng-value="'Normal'">Normal</ion-radio>
-            <ion-radio class='col col-25' ng-model="furn.type" ng-value="'Desk'">Desk</ion-radio>
-            <ion-radio class='col col-25' ng-model="furn.type" ng-value="'Bed'">Bed</ion-radio>
-            <ion-radio class='col col-25' ng-model="furn.type" ng-value="'Tall'">Tall</ion-radio>
-          </label>
-          <button class="button button-block button-balanced" type="submit">Create!</button>
-        </div>
-      </form>
-    </ion-content>
-  </ion-modal-view>
-</script>

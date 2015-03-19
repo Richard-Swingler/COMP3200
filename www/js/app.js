@@ -39,7 +39,6 @@ angular.module('starter', ['ionic', 'floor-creator.controllers', 'furniture-crea
       views: {
       'menuContent': {
         templateUrl: "templates/furniture-creator.html",
-        controller: 'FurnitureCtrl'
       }
     }
   })
