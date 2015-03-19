@@ -16,7 +16,7 @@
         <br><br><br>
         <ion-item ng-repeat="solution in solutions | limitTo: 5" ng-click="showSolution(solution)">
           <button style='padding: 0; margin:0 10px 0 0;' class="icon ion-trash-a assertive button-icon" ng-click="removeSolution(solution)"></button> 
-          {{ solution.count }}
+          {{ solution.count }} which is {{ solution.useable/10000 }} metres squared
         </ion-item>
       </ion-list>
     </ion-nav-view>

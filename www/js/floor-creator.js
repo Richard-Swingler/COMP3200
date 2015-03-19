@@ -75,11 +75,11 @@ angular.module('floor-creator.controllers', [])
       }
     } else if (create && editor.input.activePointer.justReleased(40) && !isNaN(recX) && !reset){
       if(isNegative(recX)){
-        [recX, orX] = [orX, recX];
+        var temp = recX, recX = orX, orX = temp;
         orX = Math.abs(orX);
       }
       if(isNegative(recY)){
-        [recY, orY] = [orY, recY];
+        var temp = recY, recY = orY, orY = temp;
         orY = Math.abs(orY);
       }
       recX = round(recX);
@@ -106,15 +106,12 @@ angular.module('floor-creator.controllers', [])
       editor.world.sendToBack(noDrop);
       editor.world.sendToBack(floor);
       editor.world.sendToBack(grid);
-        console.log('make!!');
-
       save_button = editor.add.button(editor.world.width - 200, editor.world.height -100, 'save_button', function(){
         var features = {};
         floorPlan.forEach(function(item) {
             features[item.name] = {name: item.name, x: item.x, y: item.y, width: item.width, height: item.height, type: item.type};
         }, this);
         window.localStorage.setItem('features', JSON.stringify(features));
-        console.log('saved!!');
         window.open("#/app/furniture");
       }, this, 2, 1, 0);
       reset_button = editor.add.button(editor.world.x + 100, editor.world.height -100, 'reset_button', function(){
@@ -142,15 +139,12 @@ angular.module('floor-creator.controllers', [])
   }
   function createCarousel(){
     carousel = editor.add.group();
-
     var banner = editor.add.tileSprite(0, editor.height - 150, editor.width, 150, 'banner');
     carouselBg = carousel.add(banner);
-
     doorShadow = carousel.create(250, editor.height - 150, 'door');
     doorShadow.height = 150;
     doorShadow.width = 150;
     doorShadow.alpha = 0.2;
-
     door = carousel.create(250, editor.height - 150, 'door');
     door.height = 150;
     door.width = 150;
@@ -159,7 +153,6 @@ angular.module('floor-creator.controllers', [])
     door.input.enableSnap(50, 50, true, true);
     door.events.onInputDown.add(dragObj, this);
     door.events.onDragStop.add(dropDoor, this);
-
     windows = editor.add.button(425, editor.height - 150, 'window', function(){
       if(windows.alpha !== 0.2){
         $scope.showPopup();
