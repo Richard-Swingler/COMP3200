@@ -10,16 +10,14 @@
       <ion-nav-title>
         <h1 class='title'>Furnitures</h1>
       </ion-nav-title>
-      <ion-nav-buttons side="right">
-        <button class="button button-outline button-light" ng-click="solve(furnitures)">
-          Solve!
-        </button>
-      </ion-nav-buttons>
     </ion-nav-bar>
     <ion-nav-view>
       <ion-list show-delete="shouldShowDelete">
         <br><br><br>
-        <ion-item ng-repeat="furniture in furnitures" ng-click="serverSideChange(furniture)" ng-value="furniture.name"><button class="icon ion-trash-a button button-icon" ng-click="remove(furniture.name)"></button>  {{ furniture.name }}</ion-item>
+        <ion-item ng-repeat="furniture in furnitures" ng-click="serverSideChange(furniture)" ng-value="furniture.name" >
+          <button style='padding: 0; margin:0 10px 0 0;' class="icon ion-trash-a assertive button-icon" ng-click="remove(furniture.name)"></button> 
+          {{ furniture.name }}
+        </ion-item>
         <ion-item ng-click='showPopup();'>
           <i class="icon ion-plus-round"></i>   Add item
         </ion-item>

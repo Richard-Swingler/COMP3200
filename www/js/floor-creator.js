@@ -32,11 +32,14 @@ angular.module('floor-creator.controllers', [])
   };
   var editor = new Phaser.Game(1024, 705, Phaser.AUTO, 'canvas', { preload: preload, create: create, update:update, render:render}, false);
   var logo, floorPlan, glass, create_button, floor, noDropBmd, bmd, shadow, grid, windows, plug, carouselBg, recX, recY, orX, orY, save_button, carousel, door, doorShadow; //initialise global variables [TODO] Replace by this. when eventually using states
+  var create = true;
+  var reset = false;
   function preload(){
     editor.load.image('logo', 'img/ionic.png');
     editor.load.image('grid', 'img/grid.png');
     editor.load.image('create_button', 'img/create_box.png');
     editor.load.image('save_button', 'img/save.png');
+    editor.load.image('reset_button', 'img/button_reset.png');
     editor.load.image('door', 'img/door.png');
     editor.load.image('window', 'img/window.png');
     editor.load.image('plug', 'img/plug.png');
@@ -55,22 +58,13 @@ angular.module('floor-creator.controllers', [])
     this.scale.pageAlignVertically = true;
     editor.stage.backgroundColor = '#ffffff'; 
     grid = editor.add.tileSprite(0, 0, 1024, 705, "full_grid"); 
-    create_button = editor.add.button(editor.world.width - 200, editor.world.height - 100, 'create_button', createButton, this, 2, 1, 0);
-    create_button.on = false;
-    function createButton(){
-      create_button.on = !create_button.on; 
-      if(create_button.on) {
-        create_button.loadTexture('logo', 0, false);
-      }else{
-        create_button.loadTexture('create_button', 0, false);
-      }
-    }
     createCarousel();
   }
   function update(){
     rotateFeature(plug);
     rotateFeature(glass);
-    if(editor.input.activePointer.isDown && create_button.on){
+    if(editor.input.activePointer.isDown && create){
+      reset = false;
       if(editor.input.activePointer.justPressed(50)){
         orX = editor.input.activePointer.x;
         orY = editor.input.activePointer.y;
@@ -79,7 +73,7 @@ angular.module('floor-creator.controllers', [])
         recY = editor.input.activePointer.y - orY;
         shadow = new Phaser.Rectangle(orX, orY, editor.input.activePointer.x - orX, editor.input.activePointer.y - orY);
       }
-    } else if (create_button.on && editor.input.activePointer.justReleased(40) && !isNaN(recX)){
+    } else if (create && editor.input.activePointer.justReleased(40) && !isNaN(recX) && !reset){
       if(isNegative(recX)){
         [recX, orX] = [orX, recX];
         orX = Math.abs(orX);
@@ -99,8 +93,7 @@ angular.module('floor-creator.controllers', [])
       floor.inputEnabled = true;
       floor.input.enableDrag();
       floor.input.enableSnap(50, 50, false, true);
-      create_button.on = false; 
-      create_button.kill();
+      create = false; 
 
       window.localStorage.setItem("floor", JSON.stringify({orX: orX, orY: orY, recX: recX, recY: recY}));
       floorPlan = editor.add.group();
@@ -113,6 +106,8 @@ angular.module('floor-creator.controllers', [])
       editor.world.sendToBack(noDrop);
       editor.world.sendToBack(floor);
       editor.world.sendToBack(grid);
+        console.log('make!!');
+
       save_button = editor.add.button(editor.world.width - 200, editor.world.height -100, 'save_button', function(){
         var features = {};
         floorPlan.forEach(function(item) {
@@ -121,6 +116,18 @@ angular.module('floor-creator.controllers', [])
         window.localStorage.setItem('features', JSON.stringify(features));
         console.log('saved!!');
         window.open("#/app/furniture");
+      }, this, 2, 1, 0);
+      reset_button = editor.add.button(editor.world.x + 100, editor.world.height -100, 'reset_button', function(){
+        reset = true;
+        create = true;
+        floor.visible = false;
+        noDrop.visible = false;
+        carousel.visible=false;
+        reset_button.visible=false;
+        carousel.destroy(true, true);
+        floorPlan.destroy(true, true);
+        save_button.destroy();
+        createCarousel();
       }, this, 2, 1, 0);
     }
   }
@@ -251,7 +258,8 @@ angular.module('floor-creator.controllers', [])
     windows.alpha = 0.2;
   }
   function onWall(floor, feature){
-    return checkOverlap(feature, floor) && checkOverlap(feature, noDrop) && checkNorth(floor, feature) || checkSouth(floor, feature) || checkWest(floor, feature) || checkEast(floor, feature);
+    var onwall = checkNorth(floor, feature) || checkSouth(floor, feature) || checkWest(floor, feature) || checkEast(floor, feature);
+    return checkOverlap(feature, floor) && onwall;
   }
   function checkNorth(floor, feature){
     return checkOverlap(feature, floor) && feature.x >= floor.x && feature.x <= floor.width && feature.y === floor.y;
@@ -266,9 +274,19 @@ angular.module('floor-creator.controllers', [])
     return checkOverlap(feature, floor) && feature.y >= floor.y && feature.y <= floor.height && feature.x === floor.width || feature.x === floor.width + 50;
   }
   function checkOverlap(spriteA, spriteB) {
-    var boundsA = spriteA.getBounds();
+    //get bounds broken but creates expected object type (PIXI.Rectangle) then modifyed with actual values
+    var boundsA = spriteA.getBounds(); 
+    boundsA.x = spriteA.x;
+    boundsA.y = spriteA.y;
+    boundsA.height = spriteA.height;
+    boundsA.width = spriteA.width;
     var boundsB = spriteB.getBounds();
-    return Phaser.Rectangle.containsRect(boundsA, boundsB);
+    boundsB.x = spriteB.x;
+    boundsB.y = spriteB.y;
+    boundsB.height = spriteB.height;
+    boundsB.width = spriteB.width;
+    //check collision both ways sprite a in spriteb and vice versa
+    return (Phaser.Rectangle.containsRect(boundsB, boundsA) || Phaser.Rectangle.containsRect(boundsA, boundsB))? true : false; 
   }
   function rotateFeature(feature){
     //roatates rectangular when wall it hit to aling with it -- experimental

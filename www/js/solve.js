@@ -21,7 +21,6 @@ angular.module('solve.controllers', [])
   }
   function create(){
     //scaling options
-    //solveEditor.physics.startSystem(Phaser.Physics.ARCADE);
     this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
     //have the game centered horizontally
     this.scale.pageAlignHorizontally = true;
@@ -34,7 +33,6 @@ angular.module('solve.controllers', [])
     floorBmd.ctx.fillStyle = '#ffffff';
     floorBmd.ctx.fill();
     floor = solveEditor.add.tileSprite(50, 50, floor['recX'], floor['recY'], 'floor_fabric');
-    //solveEditor.physics.enable(floor, Phaser.Physics.ARCADE);
 
     //loads features onto floor
     featuresData = JSON.parse(window.localStorage.getItem('features'));
@@ -116,15 +114,14 @@ angular.module('solve.controllers', [])
       console.log('~~~~~~~~~~~');
       generateUserSolutions(furnitures, features);
     }
-    console.log($scope.solutions);
     //sort solutions by biggest useable area
     $scope.solutions.sort(solutionSort);
     //store in local storage
-    //window.localStorage.setItem('Solutions', JSON.stringify($scope.solutions));
+    window.localStorage.setItem('Solutions', JSON.stringify($scope.solutions));
     // /loop through answers every second/3
     var time = 0;
-    solveEditor.time.events.loop(Phaser.Timer.SECOND/5, function(){ 
-      if (time < $scope.solutions.length){
+    solveEditor.time.events.loop(Phaser.Timer.SECOND/2, function(){ 
+      if (time < 3){
         furnitures['Desk'].obj.x = $scope.solutions[time].desk.x;
         furnitures['Desk'].obj.y = $scope.solutions[time].desk.y;
         furnitures['Desk'].obj.height = $scope.solutions[time].desk.height;

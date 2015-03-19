@@ -4,7 +4,6 @@ angular.module('furniture-creator.controllers', [])
   $scope.furnitures = {};
   $scope.furn = {};
   $scope.new = false;
-
   $scope.solve = function(){
     window.localStorage.setItem('furniture', JSON.stringify($scope.furnitures));
     window.open("#/solve");
@@ -105,6 +104,7 @@ angular.module('furniture-creator.controllers', [])
               if(typeof(box) !== 'undefined'){
                 box.visible = false;
               }
+              // /$scope.scroll = true;
               $ionicScrollDelegate.scrollBottom();
               $scope.new = true;
               if($scope.furn['type'] === 'Bed' || $scope.furn['type'] === 'Desk'){

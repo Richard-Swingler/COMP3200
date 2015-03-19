@@ -1,14 +1,19 @@
 <ion-view view-title="Create Furniture">
-	<ion-content>
+  <ion-nav-buttons side="right">
+    <button class="button button-assertive" ng-click="solve(furnitures)">
+      Solve!
+    </button>
+  </ion-nav-buttons>
+	<ion-content id="content">
 		<div class="row">
 		  	<div class="col col-33 col-offset-33">
-		  		<img src='img/add.png' width='200' style='padding-top: 150px;'>
+		  		<img ng-click='showPopup();' src='img/add.png' width='200' style='padding-top: 150px;'>
 		  	</div>
 		</div>
 			
 		<div class="card" style='text-align: center;'>
 			<h1> Start Creating Furniture!</h1>
-			<p style='font-size: 150%;'>Simply click <i class="icon ion-plus-round positive"></i> add item from the left menu</p>
+			<p style='font-size: 150%;'>Simply click <i ng-click='showPopup();' class="icon ion-plus-round positive"></i>{{ scroll }} add item from the left menu</p>
 		</div>
 		<div id='furnCanvas' style='background-color: black; margin-top: 250px;' >   
 		</div>
