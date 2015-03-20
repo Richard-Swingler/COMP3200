@@ -3,3 +3,24 @@
 	margin: auto;
   	width: 600px;
 }
+.title{
+	text-align: center;
+	margin: auto;
+	padding-top: 5%;
+}
+.content{
+	padding-top: 2%;
+	text-align: center;
+}
+.brand{
+	padding-top: 3%;
+	margin: auto;
+	width: 60%;
+	text-align: center;
+}
+.tut{
+	padding-top: 3%;
+	margin: auto;
+	width: 80%;
+	text-align: center;
+}

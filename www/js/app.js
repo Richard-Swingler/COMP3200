@@ -20,9 +20,7 @@ angular.module('starter', ['ionic', 'floor-creator.controllers', 'furniture-crea
 })
 
 .config(function($stateProvider, $urlRouterProvider) {
-  $stateProvider
-
-  .state('app', {
+  $stateProvider.state('app', {
     url: "/app",
     abstract: true,
     templateUrl: "templates/menu.html",
@@ -38,7 +36,6 @@ angular.module('starter', ['ionic', 'floor-creator.controllers', 'furniture-crea
       url: "/floor",
       templateUrl: "templates/floor-creator.html",
       controller: 'FloorCtrl'
-
   })
   .state('app.furniture', {
       url: "/furniture",
@@ -55,17 +52,11 @@ angular.module('starter', ['ionic', 'floor-creator.controllers', 'furniture-crea
         templateUrl: "templates/solve.html",
       }
     }
+  })
+  .state('intro', {
+      url: "/intro",
+      templateUrl: "templates/intro.html",
   });
-  //[TODO] get item by id -> good for viewing results/items
-  // .state('app.single', {
-  //   url: "/playlists/:playlistId",
-  //   views: {
-  //     'menuContent': {
-  //       templateUrl: "templates/playlist.html",
-  //       controller: 'PlaylistCtrl'
-  //     }
-  //   }
-  // });
   // if none of the above states are matched, use this as the fallback
-  $urlRouterProvider.otherwise('/floor');
+  $urlRouterProvider.otherwise('/intro');
 });
