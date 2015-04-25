@@ -35,20 +35,18 @@ angular.module('floor-creator.controllers', [])
   var create = true;
   var reset = false;
   function preload(){
-    editor.load.image('logo', 'img/ionic.png');
-    editor.load.image('grid', 'img/grid.png');
-    editor.load.image('create_button', 'img/create_box.png');
-    editor.load.image('save_button', 'img/save.png');
-    editor.load.image('reset_button', 'img/button_reset.png');
-    editor.load.image('door', 'img/door.png');
-    editor.load.image('window', 'img/window.png');
-    editor.load.image('plug', 'img/plug.png');
-    editor.load.image('full_grid', 'img/full_grid.png');
-    editor.load.image('banner', 'img/banner.png');
-    editor.load.image('door_tile', 'img/door_floorplan.png');
-    editor.load.image('plug_tile', 'img/plug_floorplan.png');
-    editor.load.image('window_tile', 'img/window_floorplan.png');
-    editor.load.image('floor_fabric', 'img/fabricTile.jpg');
+    editor.load.image('create_button', 'img/create_box.png'); //dabuttonfactory.com/
+    editor.load.image('save_button', 'img/save.png');//dabuttonfactory.com/
+    editor.load.image('reset_button', 'img/button_reset.png');//dabuttonfactory.com/
+    editor.load.image('door', 'img/door.png'); //https://lh3.googleusercontent.com/bAdeDTD6qXCO7XqxP6UZ1W-o_JBClH9zatJ6gVvvXKvfG0vfaUf6ufT5uHO4YnrbqjKMjQ=s85
+    editor.load.image('window', 'img/window.png'); //https://www.google.co.uk/search?sa=G&q=clip+art+window&tbm=isch&tbs=simg:CAQSiQEahgELEKjU2AQaAggJDAsQsIynCBpfCl0IAxInoQbyBpUKvQLQEvQGV6IG8QagCeg2tyjnNsYhuyiCN7EoqTa-NqM0GjCR4Ib06PvgWui3oeLITPjM5UdL59eUZzuBs7QvRcMEbyzsbWqcOWpFi8ky_1Wo-ZPoMCxCOrv4IGgoKCAgBEgSCHNxYDA&ei=aIw7VZ7bAo35aPLJgcgC&ved=0CB0Qwg4oAA
+    editor.load.image('plug', 'img/plug.png'); //https://lh3.googleusercontent.com/0qbFu9bVum2ulPYIPytXOjrplS1f-N-fdpUo9D2sf0SOx3628hVp7hjylUQ62fGkC545Hls=s85
+    editor.load.image('full_grid', 'img/full_grid.png'); //https://lh3.googleusercontent.com/c3MBWvvre_BZ5Mr2DvaYRvEOMX_H2ietDlJdXXzjIP4u7SO66Ht8aolHtFLBM0zL0CVW5A=s128
+    editor.load.image('banner', 'img/banner.png'); 
+    editor.load.image('door_tile', 'img/door_floorplan.png');//https://lh3.googleusercontent.com/YgIyOo9NvVLdXJxlMGIkIoQ7hHsm_WUVmzYhUgAZmV_XyJ1fJ3rTZ1rtZXsryQBPr46u6w=s85
+    editor.load.image('plug_tile', 'img/plug_floorplan.png'); //https://lh3.googleusercontent.com/9LzKIWFdzS6DmcR8y3gP9hmMo7Jd5sm43aqLX_2MQqB3Dp0-1vptCKBQeuozb1Zxx5j-tw=s50
+    editor.load.image('window_tile', 'img/window_floorplan.png'); //https://lh3.googleusercontent.com/MjEprep7aGb8s5v0nJdAS-GJUxP_2qYXiO-9GslgZkbL-qjRsUOSX7SqPRKjOnEFAg_ZDQ=s50
+    editor.load.image('floor_fabric', 'img/fabricTile.jpg'); //https://lh3.googleusercontent.com/gSalXAf3MgmyRB76o48fdhdnODChmXB-fKAjQi5e3Mncdm012ZO3LQwdZclHBB10BmiM0w=s116
   }
   function create(){
     //scaling options
