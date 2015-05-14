@@ -30,10 +30,38 @@ angular.module('floor-creator.controllers', [])
       console.log('Tapped!', res);
     });
   };
+  $scope.showFloorPopup = function() {
+    $scope.data = {}; //creates scope variable for form submition
+    // Custom pop up to prompt user for length of window
+    var popup = $ionicPopup.show({
+      template: '<input type="number" placeholder="Width in m" ng-model="data.width"><input type="number" placeholder="Height in m" ng-model="data.height">', 
+      title: 'Enter floor dimentions',
+      subTitle: '1 Square = 1/2m',
+      scope: $scope,
+      buttons: [
+        { text: 'Cancel' },
+        { text: '<b>Save</b>',
+          type: 'button-positive',
+          onTap: function(e) {
+            if (!$scope.data.width || !$scope.data.height) {
+              //don't allow the user to close unless dimentions are entered
+              e.preventDefault();
+              alert('Values are missing');
+            } else {
+              addFloor();
+            }
+          }
+        }
+      ]
+    });
+    popup.then(function(res) {
+      console.log('Tapped!', res);
+    });
+  };
   var editor = new Phaser.Game(1024, 705, Phaser.AUTO, 'canvas', { preload: preload, create: create, update:update, render:render}, false);
-  var logo, floorPlan, glass, create_button, floor, noDropBmd, bmd, shadow, grid, windows, plug, carouselBg, recX, recY, orX, orY, save_button, carousel, door, doorShadow; //initialise global variables [TODO] Replace by this. when eventually using states
+  var logo, floorPlan, glass, floorCreate, create_button, floor, noDropBmd, bmd, shadow, grid, windows, plug, carouselBg, recX, recY, orX, orY, save_button, carousel, door, doorShadow; //initialise global variables [TODO] Replace by this. when eventually using states
   var create = true;
-  var reset = false;
+  var reset, made = false;
   function preload(){
     editor.load.image('create_button', 'img/create_box.png'); //dabuttonfactory.com/
     editor.load.image('save_button', 'img/save.png');//dabuttonfactory.com/
@@ -43,6 +71,7 @@ angular.module('floor-creator.controllers', [])
     editor.load.image('plug', 'img/plug.png'); //https://lh3.googleusercontent.com/0qbFu9bVum2ulPYIPytXOjrplS1f-N-fdpUo9D2sf0SOx3628hVp7hjylUQ62fGkC545Hls=s85
     editor.load.image('full_grid', 'img/full_grid.png'); //https://lh3.googleusercontent.com/c3MBWvvre_BZ5Mr2DvaYRvEOMX_H2ietDlJdXXzjIP4u7SO66Ht8aolHtFLBM0zL0CVW5A=s128
     editor.load.image('banner', 'img/banner.png'); 
+    editor.load.image('manual', 'img/manual.png'); 
     editor.load.image('door_tile', 'img/door_floorplan.png');//https://lh3.googleusercontent.com/YgIyOo9NvVLdXJxlMGIkIoQ7hHsm_WUVmzYhUgAZmV_XyJ1fJ3rTZ1rtZXsryQBPr46u6w=s85
     editor.load.image('plug_tile', 'img/plug_floorplan.png'); //https://lh3.googleusercontent.com/9LzKIWFdzS6DmcR8y3gP9hmMo7Jd5sm43aqLX_2MQqB3Dp0-1vptCKBQeuozb1Zxx5j-tw=s50
     editor.load.image('window_tile', 'img/window_floorplan.png'); //https://lh3.googleusercontent.com/MjEprep7aGb8s5v0nJdAS-GJUxP_2qYXiO-9GslgZkbL-qjRsUOSX7SqPRKjOnEFAg_ZDQ=s50
@@ -57,6 +86,11 @@ angular.module('floor-creator.controllers', [])
     editor.stage.backgroundColor = '#ffffff'; 
     grid = editor.add.tileSprite(0, 0, 1024, 705, "full_grid"); 
     createCarousel();
+    floorCreate = editor.add.button(editor.width - 200, 55, 'manual', function(){
+      if(windows.alpha !== 0.2){
+        $scope.showFloorPopup();
+      }
+    }, this, 2, 1, 0);
   }
   function update(){
     rotateFeature(plug);
@@ -92,20 +126,20 @@ angular.module('floor-creator.controllers', [])
       floor.input.enableDrag();
       floor.input.enableSnap(50, 50, false, true);
       create = false; 
-
+    }
+    if(!create && !made){  
+      made = true;
       window.localStorage.setItem("floor", JSON.stringify({orX: orX, orY: orY, recX: recX, recY: recY}));
       floorPlan = editor.add.group();
       floor.x = 100;
       floor.y = 50;
       floor.inputEnabled = false;
-      //next_button.visible = false;
+      floorCreate.visible = false;
       carousel.visible = true;
       noDrop = editor.add.tileSprite(floor.x +50, floor.y +50,floor.width - 100,floor.height - 100, 'floor_fabric');
       editor.world.sendToBack(noDrop);
       editor.world.sendToBack(floor);
       editor.world.sendToBack(grid);
-        console.log('make!!');
-
       save_button = editor.add.button(editor.world.width - 200, editor.world.height -100, 'save_button', function(){
         var features = {};
         floorPlan.forEach(function(item) {
@@ -116,11 +150,13 @@ angular.module('floor-creator.controllers', [])
         window.open("#/app/furniture");
       }, this, 2, 1, 0);
       reset_button = editor.add.button(editor.world.x + 100, editor.world.height -100, 'reset_button', function(){
+        made = false;
         reset = true;
         create = true;
+        floorCreate.visible = true;
         floor.visible = false;
         noDrop.visible = false;
-        carousel.visible=false;
+        carousel.visible = false;
         reset_button.visible=false;
         carousel.destroy(true, true);
         floorPlan.destroy(true, true);
@@ -254,6 +290,11 @@ angular.module('floor-creator.controllers', [])
     glass.events.onDragStop.add(dropGlass, this);
     windows.tint = 0xD3D3D3;
     windows.alpha = 0.2;
+  }
+  addFloor = function(){
+    floor = editor.add.tileSprite(50, 50, round($scope.data.width * 100), round($scope.data.height * 100), 'floor_fabric');
+    floor.alpha = 0.8;
+    create = false; 
   }
   function onWall(floor, feature){
     var onwall = checkNorth(floor, feature) || checkSouth(floor, feature) || checkWest(floor, feature) || checkEast(floor, feature);

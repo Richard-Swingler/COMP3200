@@ -70,12 +70,12 @@ angular.module('solve.controllers', [])
     }
     //loads furniture onto floor 
     furnitures = JSON.parse(window.localStorage.getItem('furniture'));
-    //creating dummy data for test purposes
-    furnitures = {Bed: {name: 'Bed', recX: 300, recY: 150, type: 'Bed'},
-      Desk: {name: 'Desk', recX: 200, recY: 100, type: 'Desk'},
-      Wardrobe: {name: 'Wardrobe', recX: 250, recY: 100, type: 'Tall'},
-      ChestOfDraws: {name: 'ChestOfDraws', recX: 200, recY: 100, type: 'Normal'},
-    };
+    //creating dummy data for test purposes uncomment to use
+    // furnitures = {Bed: {name: 'Bed', recX: 300, recY: 150, type: 'Bed'},
+    //   Desk: {name: 'Desk', recX: 200, recY: 100, type: 'Desk'},
+    //   Wardrobe: {name: 'Wardrobe', recX: 250, recY: 100, type: 'Tall'},
+    //   ChestOfDraws: {name: 'ChestOfDraws', recX: 200, recY: 100, type: 'Normal'},
+    // };
     restrictedFurn = solveEditor.add.group();
     otherFurn = solveEditor.add.group();
     for(var furniture in furnitures){
