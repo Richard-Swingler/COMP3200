@@ -71,11 +71,11 @@ angular.module('solve.controllers', [])
     //loads furniture onto floor 
     furnitures = JSON.parse(window.localStorage.getItem('furniture'));
     //creating dummy data for test purposes uncomment to use
-    furnitures = {Bed: {name: 'Bed', recX: 300, recY: 150, type: 'Bed'},
-      Desk: {name: 'Desk', recX: 200, recY: 100, type: 'Desk'},
-      Wardrobe: {name: 'Wardrobe', recX: 250, recY: 100, type: 'Tall'},
-      ChestOfDraws: {name: 'ChestOfDraws', recX: 200, recY: 100, type: 'Normal'},
-    };
+    // furnitures = {Bed: {name: 'Bed', recX: 300, recY: 150, type: 'Bed'},
+    //   Desk: {name: 'Desk', recX: 200, recY: 100, type: 'Desk'},
+    //   Wardrobe: {name: 'Wardrobe', recX: 250, recY: 100, type: 'Tall'},
+    //   ChestOfDraws: {name: 'ChestOfDraws', recX: 200, recY: 100, type: 'Normal'},
+    // };
     restrictedFurn = solveEditor.add.group();
     var colours = ['#0080ff','#FF0000','#00ffff','#33CC33','#CC0099'];
     var colourCount = 0;
