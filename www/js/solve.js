@@ -104,16 +104,17 @@ angular.module('solve.controllers', [])
         //sort array by largest flat side (furniture will be flipped to align with wall)
         remainingFurnitureData.sort(compare);
     }
+     
     for(side = 0; side < 8; side ++){
       console.log('~~Attepmt~~');
       console.log(side);
       console.log('~~~~~~~~~~~');
       generateUserSolutions(furnitures, features);
+
     }
+    
     //sort solutions by biggest useable area
     $scope.solutions.sort(solutionSort);
-    console.log('yoyoyoyo');
-
     for(var t = 0; t < $scope.solutions.length; t++){
       $scope.solutions[t].count = t + 1;
       console.log($scope.solutions[t]);
@@ -142,9 +143,11 @@ angular.module('solve.controllers', [])
        });
     });
   }
+  //Removes selected solution when the bin is tapped
   $scope.removeSolution = function(solution){
     $scope.solutions.splice($scope.solutions.indexOf(solution), 1);
   }
+  //Sort solutions by decreasing area
   function solutionSort(a,b) {
     if (a.useable > b.useable)
        return -1;
