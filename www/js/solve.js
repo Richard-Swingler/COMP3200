@@ -71,19 +71,24 @@ angular.module('solve.controllers', [])
     //loads furniture onto floor 
     furnitures = JSON.parse(window.localStorage.getItem('furniture'));
     //creating dummy data for test purposes uncomment to use
-    // furnitures = {Bed: {name: 'Bed', recX: 300, recY: 150, type: 'Bed'},
-    //   Desk: {name: 'Desk', recX: 200, recY: 100, type: 'Desk'},
-    //   Wardrobe: {name: 'Wardrobe', recX: 250, recY: 100, type: 'Tall'},
-    //   ChestOfDraws: {name: 'ChestOfDraws', recX: 200, recY: 100, type: 'Normal'},
-    // };
+    furnitures = {Bed: {name: 'Bed', recX: 300, recY: 150, type: 'Bed'},
+      Desk: {name: 'Desk', recX: 200, recY: 100, type: 'Desk'},
+      Wardrobe: {name: 'Wardrobe', recX: 250, recY: 100, type: 'Tall'},
+      ChestOfDraws: {name: 'ChestOfDraws', recX: 200, recY: 100, type: 'Normal'},
+    };
     restrictedFurn = solveEditor.add.group();
+    var colours = ['#0080ff','#FF0000','#00ffff','#33CC33','#CC0099'];
+    var colourCount = 0;
     otherFurn = solveEditor.add.group();
     for(var furniture in furnitures){
+
         var furnBmd = createBmd(furnitures[furniture]);
-        furnBmd.ctx.fillStyle = '#0080ff'; //[TODO] load different texture based on type 
+        furnBmd.ctx.fillStyle = colours[colourCount]; //[TODO] load different texture based on type 
+        colourCount++;
         furnBmd.shiftHSL(0.1);
         furnBmd.ctx.fill();
         furnitures[furniture].obj = restrictedFurn.create(50, 50, furnBmd);
+        furnitures[furniture].obj.alpha = 0.8;
         //defines style to use for labels
         var style = {font: "32px Arial", fill: "#000000", wordWrap: true, wordWrapWidth: furnitures[furniture].obj.width, align: "center"};
         //creates label
@@ -112,16 +117,16 @@ angular.module('solve.controllers', [])
       generateUserSolutions(furnitures, features);
 
     }
-    
+         
     //sort solutions by biggest useable area
-    $scope.solutions.sort(solutionSort);
     for(var t = 0; t < $scope.solutions.length; t++){
       $scope.solutions[t].count = t + 1;
-      console.log($scope.solutions[t]);
+      //console.log($scope.solutions[t]);
     }
+    $scope.showSolution($scope.solutions[0]);
     //store in local storage
-    window.localStorage.setItem('Solutions', JSON.stringify($scope.solutions));
-    
+    //window.localStorage.setItem('Solutions', JSON.stringify($scope.solutions));
+    $scope.loadShow();
   }
   $scope.showSolution = function(solution){
     furnitures['Desk'].obj.x = solution.desk.x;
@@ -740,5 +745,11 @@ angular.module('solve.controllers', [])
       }
       tracer.x += 50;
     }
+  }
+  $scope.loadShow = function(){
+    console.log('ji');
+    $scope.show = $scope.solutions;
+    console.log($scope.solutions);
+
   }
 })
